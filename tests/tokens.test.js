@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { tokenize, splitGlue } from '../web/js/tokens.js';
+import { tokenize } from '../web/js/tokens.js';
 
 test('tokenize: обычный текст по словам, пробелы отдельно', () => {
   assert.deepEqual(tokenize('Медоносная ', false, true), { pre: '', words: ['Медоносная', ' '], post: '' });
@@ -24,12 +24,4 @@ test('tokenize: текст без пробелов между двумя реб�
   assert.deepEqual(tokenize('xyz', true, true), { pre: 'xyz', words: [], post: '' });
   assert.deepEqual(tokenize(' ', true, true), { pre: '', words: [' '], post: '' });
   assert.deepEqual(tokenize('', true, true), { pre: '', words: [], post: '' });
-});
-
-test('splitGlue: буквы отдельно от знаков препинания', () => {
-  assert.deepEqual(splitGlue('ам,', 'post'), { letters: 'ам', rest: ',' });
-  assert.deepEqual(splitGlue('ами}', 'post'), { letters: 'ами', rest: '}' });
-  assert.deepEqual(splitGlue('.', 'post'), { letters: '', rest: '.' });
-  assert.deepEqual(splitGlue('«Те', 'pre'), { letters: 'Те', rest: '«' });
-  assert.deepEqual(splitGlue('за', 'pre'), { letters: 'за', rest: '' });
 });

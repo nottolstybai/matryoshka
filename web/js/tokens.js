@@ -27,11 +27,3 @@ export function tokenize(text, prev, next) {
   const words = text.split(/(\s+)/).filter(Boolean);
   return { pre, words, post };
 }
-
-// Делит хвост на буквы, которые сольются с ответом, и остальное (знаки препинания).
-// kind 'post' — окончание (буквы в начале: «ам,»), 'pre' — приставка (буквы в конце: ««Те»).
-export function splitGlue(text, kind) {
-  const m = kind === 'post' ? text.match(/^(\p{L}+)(.*)$/u) : text.match(/^(.*?)(\p{L}+)$/u);
-  if (!m) return { letters: '', rest: text };
-  return kind === 'post' ? { letters: m[1], rest: m[2] } : { letters: m[2], rest: m[1] };
-}

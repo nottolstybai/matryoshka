@@ -93,14 +93,42 @@ a:hover { text-decoration-color: currentColor; }
 }
 
 .page {
-  max-width: 760px;
+  max-width: 700px;
   margin: 0 auto;
   padding: clamp(20px, 5vw, 48px) 16px 48px;
 }
 
 /* ---- шапка ------------------------------------------------------------------ */
 
-.masthead { text-align: center; margin-bottom: clamp(18px, 4vw, 32px); }
+.masthead { position: relative; text-align: center; margin-bottom: clamp(16px, 3.5vw, 26px); }
+
+/* Переключатель темы: луна в светлой теме, солнце в тёмной. */
+.theme-toggle {
+  position: absolute;
+  top: -6px;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+}
+.theme-toggle:hover { background: var(--sheet); border-color: var(--line-strong); }
+.theme-toggle:active { transform: scale(0.94); }
+.theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.theme-toggle .i-sun { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .i-sun { display: block; }
+  :root:not([data-theme="light"]) .theme-toggle .i-moon { display: none; }
+}
+:root[data-theme="dark"] .theme-toggle .i-sun { display: block; }
+:root[data-theme="dark"] .theme-toggle .i-moon { display: none; }
 
 .eyebrow {
   margin: 0 0 6px;
@@ -113,22 +141,37 @@ a:hover { text-decoration-color: currentColor; }
 
 h1 {
   margin: 0;
-  font: 700 clamp(2rem, 1.3rem + 3.5vw, 3rem)/1.1 var(--serif);
+  font: 700 clamp(1.75rem, 1.2rem + 2.4vw, 2.4rem)/1.1 var(--serif);
   letter-spacing: -0.01em;
 }
 
-.dateline { margin: 10px 0 0; color: var(--ink-2); font-size: 0.95rem; }
+.dateline { margin: 8px 0 0; color: var(--ink-2); font-size: 0.9rem; }
 .dateline .sep { color: var(--line-strong); margin: 0 0.4em; }
 .dateline .to-today { margin-left: 0.6em; white-space: nowrap; }
 
 /* ---- лист с головоломкой ------------------------------------------------------ */
 
 .sheet {
+  --pad-x: clamp(16px, 3.5vw, 32px);
   background: var(--sheet);
   border: 1px solid var(--line);
   border-radius: 20px;
   box-shadow: var(--shadow);
-  padding: clamp(18px, 4vw, 36px) clamp(16px, 4vw, 40px) clamp(20px, 4vw, 32px);
+  padding: clamp(16px, 3vw, 26px) var(--pad-x) 0;
+}
+
+/* Панель ввода: прилипает к низу экрана, пока лист с головоломкой на экране,
+   и уезжает вместе с ним, когда листаешь к архиву. Нижний отступ листа — её. */
+.dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 16px calc(-1 * var(--pad-x)) 0;
+  padding: 12px var(--pad-x) calc(8px + env(safe-area-inset-bottom));
+  background: var(--sheet);
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 -10px 24px -18px rgba(0, 0, 0, 0.35);
 }
 
 .sheet-top {
@@ -181,10 +224,10 @@ h1 {
 
 .board {
   position: relative;
-  font: 400 clamp(1.2rem, 1rem + 1.1vw, 1.55rem)/2.15 var(--serif);
+  font: 400 clamp(1.08rem, 0.98rem + 0.6vw, 1.32rem)/1.9 var(--serif);
   font-optical-sizing: auto;
   color: var(--ink);
-  margin: 14px 0 22px;
+  margin: 10px 0 0;
   text-wrap: pretty;
 }
 
@@ -198,27 +241,27 @@ h1 {
    доступный — акцентным, закрытый — серым, разгаданный — обычными чернилами. */
 .box { transition: color 0.45s; }
 
-.brace {
-  display: inline-block;
-  font-weight: 600;
-  transition: color 0.45s;
-}
-
 .rebus.locked > .box { color: var(--muted); }
-.rebus.locked > .box > .w > .brace { color: var(--line-strong); }
-
 .rebus.active > .box { color: var(--accent-ink); }
-.rebus.active > .box > .w > .brace { color: var(--accent); }
 
-/* Окончание или приставка у скобки — обычный текст, цвета окружающего абзаца. */
-.glue { color: inherit; }
+/* Пристёжки — скобки и окончания внутри крайнего слова соседнего ребуса (см. render.js).
+   Цвет — по состоянию владельца (s-*), а не слова, в которое они вложены. */
+.att { transition: color 0.45s; }
+.att.brace { display: inline-block; font-weight: 600; }
+.att.brace.s-active { color: var(--accent); }
+.att.brace.s-locked { color: var(--line-strong); }
+.att.glue.s-root { color: var(--ink); }
+.att.glue.s-active { color: var(--accent-ink); }
+.att.glue.s-locked { color: var(--muted); }
+/* Окончание у разгаданного слова сливается с ним: тот же цвет и вес. */
+.answer > .att.glue { color: inherit; transition: none; }
 
 /* Ответ сливается с хвостом: один стиль на всё слово. */
 .rebus.solved { font-weight: 600; color: var(--ink); }
 
 /* Схлопывание: подсказка вспыхивает цветом «верно» и гаснет,
    слово-ответ появляется тем же цветом и уходит в обычные чернила. */
-.box.solving, .box.solving * { color: var(--ok) !important; transition-duration: 0.12s; }
+.box.solving, .box.solving :not(.att), .att.solving { color: var(--ok) !important; transition-duration: 0.12s; }
 .rebus.fresh { animation: settle 1.4s ease-out; }
 @keyframes settle {
   from { color: var(--ok); }
@@ -245,9 +288,9 @@ h1 {
 .guess input {
   flex: 1;
   min-width: 0;
-  font: 500 1.05rem/1.3 var(--sans);
-  padding: 12px 16px;
-  border-radius: 12px;
+  font: 500 1rem/1.3 var(--sans);
+  padding: 10px 14px;
+  border-radius: 10px;
   border: 1.5px solid var(--line-strong);
   background: var(--sheet);
   color: var(--ink);
@@ -260,9 +303,9 @@ h1 {
 
 .guess button {
   flex: none;
-  font: 600 1rem var(--sans);
-  padding: 12px 20px;
-  border-radius: 12px;
+  font: 600 0.95rem var(--sans);
+  padding: 10px 18px;
+  border-radius: 10px;
   border: none;
   background: var(--ink);
   color: var(--paper);
@@ -274,9 +317,9 @@ h1 {
 .guess button:disabled { opacity: 0.45; cursor: default; transform: none; }
 
 .status {
-  min-height: 1.5em;
-  margin: 12px 0 0;
-  font-size: 0.95rem;
+  min-height: 1.45em;
+  margin: 8px 0 0;
+  font-size: 0.9rem;
   color: var(--muted);
   transition: color 0.25s;
 }
@@ -313,8 +356,8 @@ h1 {
 
 /* ---- архив --------------------------------------------------------------------- */
 
-.archive { margin-top: clamp(28px, 6vw, 48px); }
-.archive h2 { margin: 0 0 14px; font: 700 1.5rem var(--serif); }
+.archive { margin-top: clamp(24px, 5vw, 40px); }
+.archive h2 { margin: 0 0 12px; font: 700 1.3rem var(--serif); }
 
 .stats {
   display: grid;
@@ -325,11 +368,11 @@ h1 {
 .stats div {
   background: var(--sheet);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px 14px;
+  border-radius: 12px;
+  padding: 10px 12px;
 }
 .stats dt { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.stats dd { margin: 2px 0 0; font: 600 1.6rem/1.1 var(--serif); }
+.stats dd { margin: 2px 0 0; font: 600 1.35rem/1.1 var(--serif); }
 
 .calendar {
   max-width: 400px;
@@ -364,7 +407,7 @@ h1 {
   justify-content: center;
   aspect-ratio: 1;
   border-radius: 10px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--ink);
   text-decoration: none;
@@ -410,7 +453,7 @@ a.cal-day.done:hover { background: var(--accent-ink); }
 }
 
 .howto-inner { padding: 24px; }
-.howto h2 { margin: 0 0 10px; font: 700 1.5rem var(--serif); }
+.howto h2 { margin: 0 0 10px; font: 700 1.3rem var(--serif); }
 .howto-inner > p { margin: 0 0 8px; color: var(--ink-2); line-height: 1.55; }
 .howto-inner > p b { color: var(--ink); }
 
@@ -429,15 +472,15 @@ a.cal-day.done:hover { background: var(--accent-ink); }
   text-transform: uppercase;
   color: var(--muted);
 }
-.howto .board { font-size: 1.3rem; margin: 4px 0 12px; }
+.howto .board { font-size: 1.2rem; margin: 4px 0 12px; }
 .howto-actions { display: flex; justify-content: flex-end; margin-top: 16px; }
 
 /* ---- адаптив и доступность ------------------------------------------------------ */
 
 @media (max-width: 480px) {
-  .board { line-height: 2.05; }
-  .guess button { padding: 12px 16px; }
-  .stats dd { font-size: 1.35rem; }
+  .board { line-height: 1.8; }
+  .guess button { padding: 10px 14px; }
+  .stats dd { font-size: 1.2rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

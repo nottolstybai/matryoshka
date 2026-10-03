@@ -4,17 +4,20 @@
 //
 // Разметка:
 //   <span class="rebus depth-N active|locked|solved" data-id="N">
-//     [<span class="w glue pre">Те</span>]          — приставка, приклеенная к скобке
-//     <span class="box">{ …токены… }</span>          — плашка с подсказкой (пока не решён)
-//     или <span class="w answer">слово</span>       — ответ (решён)
-//     [<span class="w glue post">галь</span>]        — окончание
+//     <span class="box">…слова подсказки…</span>   — пока не решён
+//     или <span class="w answer">слово</span>      — когда решён
 //   </span>
 // Каждое слово — inline-block токен .w (transform не работает на строчных элементах).
-// Между склеенными токенами стоит WORD JOINER, чтобы строка не рвалась на стыке.
+//
+// Пристёжки (.att) — скобки, окончания, приставки и знаки препинания, которые стоят вплотную
+// к соседнему ребусу. Они кладутся ВНУТРЬ крайнего слова этого ребуса: между двумя
+// inline-block строка может разорваться (точка уезжала на новую строку), внутри одного — нет.
+// data-owner — чей кусок текста: id ребуса (его скобки и текст его подсказки) или 'root'.
+// Когда ребус id схлопывается, его собственные пристёжки исчезают вместе с подсказкой,
+// а чужие (скобки внешних ребусов, окончание из текста родителя) переезжают в слово-ответ.
 
-import { tokenize, splitGlue } from './tokens.js';
+import { tokenize } from './tokens.js';
 
-const WJ = '⁠';
 const EASE = 'cubic-bezier(.2, .7, .2, 1)';
 
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -26,7 +29,8 @@ export const finished = (anim) => {
 };
 
 export function render(container, game) {
-  container.replaceChildren(...buildParts(game.tree.root.parts, game, false));
+  container.replaceChildren(...buildParts(game.tree.root.parts, game, 'root', false));
+  for (const a of container.querySelectorAll('.att')) paint(a, game);
   container.classList.toggle('done', game.done);
 }
 
@@ -41,6 +45,7 @@ export async function collapse(container, game, id) {
 
   if (animate) {
     box.classList.add('solving');
+    for (const a of container.querySelectorAll(`.att[data-owner="${id}"]`)) a.classList.add('solving');
     await finished(box.animate([{ opacity: 1 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }], { duration: 380, easing: 'ease-in', fill: 'forwards' }));
     // Пока подсказка гасла, мог схлопнуться родитель — тогда этой плашки уже нет на странице.
     if (!box.isConnected) return;
@@ -57,6 +62,11 @@ export async function collapse(container, game, id) {
   }
 
   const ans = answer(game.answers[id]);
+  // Чужие пристёжки с краёв подсказки переезжают в слово-ответ, свои исчезают вместе с ней.
+  const foreign = (side) =>
+    [...edgeToken(box, side).querySelectorAll(':scope > .att')].filter((a) => a.dataset.side === side && a.dataset.owner !== String(id));
+  ans.prepend(...foreign('lead'));
+  ans.append(...foreign('trail'));
   box.replaceWith(ans);
   el.classList.remove('active', 'locked');
   el.classList.add('solved');
@@ -66,7 +76,8 @@ export async function collapse(container, game, id) {
     const active = game.isActive(parentId);
     parentEl.classList.toggle('active', active);
     parentEl.classList.toggle('locked', !active);
-    if (active && animate) popBraces(parentEl.querySelector(':scope > .box'), 1.3);
+    for (const a of container.querySelectorAll(`.att[data-owner="${parentId}"]`)) paint(a, game);
+    if (active && animate) popBraces(container, parentId, 1.3);
   }
   if (!animate) return;
 
@@ -111,7 +122,7 @@ export function nudge(container, ids) {
     box.classList.remove('nudge');
     box.classList.add('nudge');
     setTimeout(() => box.classList.remove('nudge'), 1300);
-    if (!reduced()) popBraces(box, 1.3);
+    if (!reduced()) popBraces(container, id, 1.3);
   }
 }
 
@@ -164,13 +175,15 @@ export function celebrate(anchor) {
 
 // ---- построение дерева -------------------------------------------------------
 
-function buildParts(parts, game, inBox) {
+// owner — чей это текст: id ребуса, в подсказке которого он стоит, или 'root'.
+function buildParts(parts, game, owner, inBox) {
   const out = [];
   let pre = ''; // приставка для следующего ребуса
-  let last = null; // элемент предыдущего ребуса — к нему клеится окончание
+  let last = null; // предыдущий ребус — к нему пристёгивается окончание
   parts.forEach((p, i) => {
     if (typeof p !== 'string') {
-      last = buildNode(p, game, pre);
+      last = buildNode(p, game);
+      if (pre) attach(last, 'lead', att('glue', pre, owner));
       pre = '';
       out.push(last);
       return;
@@ -179,7 +192,7 @@ function buildParts(parts, game, inBox) {
     if (inBox && i === 0) text = text.trimStart();
     if (inBox && i === parts.length - 1) text = text.trimEnd();
     const t = tokenize(text, i > 0, i < parts.length - 1);
-    if (t.pre && last) last.append(WJ, glue(t.pre, 'post'));
+    if (t.pre && last) attach(last, 'trail', att('glue', t.pre, owner));
     for (const w of t.words) out.push(/^\s+$/.test(w) ? document.createTextNode(' ') : token(w));
     pre = t.post;
     last = null;
@@ -187,11 +200,10 @@ function buildParts(parts, game, inBox) {
   return out;
 }
 
-function buildNode(node, game, pre) {
+function buildNode(node, game) {
   const el = document.createElement('span');
   el.className = `rebus depth-${Math.min(node.depth, 3)}`;
   el.dataset.id = node.id;
-  if (pre) el.append(glue(pre, 'pre'), WJ);
   if (game.isSolved(node.id)) {
     el.classList.add('solved');
     el.append(answer(game.answers[node.id]));
@@ -205,30 +217,49 @@ function buildNode(node, game, pre) {
 function buildBox(node, game) {
   const box = document.createElement('span');
   box.className = 'box';
-  const kids = buildParts(node.parts, game, true);
-  // Скобки входят в крайние токены, чтобы не отрываться от них при переносе строки.
-  if (isToken(kids[0])) kids[0].prepend(brace('{'));
-  else kids.unshift(token('', brace('{')), WJ);
-  if (isToken(kids.at(-1))) kids.at(-1).append(brace('}'));
-  else kids.push(WJ, token('', brace('}')));
-  box.append(...kids);
+  box.append(...buildParts(node.parts, game, node.id, true));
+  // Свои скобки — снаружи всех пристёжек вложенных ребусов: «{» в начало, «}» в конец.
+  attach(box, 'lead', att('brace', '{', node.id));
+  attach(box, 'trail', att('brace', '}', node.id));
   return box;
 }
 
 const isToken = (n) => n instanceof Element && n.classList.contains('w');
 
-function token(text, ...extra) {
+// Крайнее слово ребуса, подсказки или слова: side — 'lead' (первое) или 'trail' (последнее).
+function edgeToken(node, side) {
+  if (isToken(node)) return node;
+  const kids = [...node.children].filter((k) => isToken(k) || k.matches('.rebus, .box'));
+  return edgeToken(side === 'lead' ? kids[0] : kids.at(-1), side);
+}
+
+function attach(node, side, el) {
+  el.dataset.side = side;
+  const tok = edgeToken(node, side);
+  if (side === 'lead') tok.prepend(el);
+  else tok.append(el);
+}
+
+function att(kind, text, owner) {
   const el = document.createElement('span');
-  el.className = 'w';
-  if (text) el.textContent = text;
-  el.append(...extra);
+  el.className = `att ${kind}`;
+  el.dataset.owner = owner;
+  el.textContent = text;
   return el;
 }
 
-function brace(ch) {
+// Цвет пристёжки — по состоянию её владельца, а не ребуса, в чьё слово она вложена.
+function paint(el, game) {
+  const owner = el.dataset.owner;
+  const state = owner === 'root' ? 'root' : game.isActive(Number(owner)) ? 'active' : 'locked';
+  el.classList.remove('s-root', 's-active', 's-locked');
+  el.classList.add(`s-${state}`);
+}
+
+function token(text) {
   const el = document.createElement('span');
-  el.className = 'brace';
-  el.textContent = ch;
+  el.className = 'w';
+  el.textContent = text;
   return el;
 }
 
@@ -238,24 +269,10 @@ function answer(text) {
   return el;
 }
 
-// Хвост: буквы, которые сольются с ответом, выделены в .end; знаки препинания — обычным.
-function glue(text, kind) {
-  const el = token('');
-  el.classList.add('glue', kind);
-  const { letters, rest } = splitGlue(text, kind);
-  const end = document.createElement('span');
-  end.className = 'end';
-  end.textContent = letters;
-  if (kind === 'post') el.append(end, rest);
-  else el.append(rest, end);
-  return el;
-}
-
 // ---- анимации ------------------------------------------------------------------
 
-function popBraces(box, scale) {
-  if (!box) return;
-  for (const b of box.querySelectorAll(':scope > .w > .brace')) {
+function popBraces(container, id, scale) {
+  for (const b of container.querySelectorAll(`.att.brace[data-owner="${id}"]`)) {
     b.animate(
       [{ transform: 'scale(1)' }, { transform: `scale(${scale})`, offset: 0.4 }, { transform: 'scale(1)' }],
       { duration: 520, delay: 120, easing: 'ease-in-out' },

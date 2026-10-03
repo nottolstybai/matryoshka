@@ -2,10 +2,17 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#f4efe4" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#16140f" media="(prefers-color-scheme: dark)">
+  <script>
+    // Тема, выбранная вручную (js/theme.js), — до первой отрисовки, чтобы не мелькала системная.
+    try {
+      const t = localStorage.getItem('fact-rebus:theme');
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    } catch {}
+  </script>
   <title>Матрёшка — факт в ребусах</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,6 +22,10 @@
 <body>
   <div class="page">
     <header class="masthead">
+      <button type="button" id="theme-toggle" class="theme-toggle">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>
+      </button>
       <p class="eyebrow">Ежедневный факт в ребусах</p>
       <h1>Матрёшка</h1>
       <p class="dateline">
@@ -33,16 +44,19 @@
 
         <div id="board" class="board"></div>
 
-        <form id="guess-form" class="guess" autocomplete="off" novalidate>
-          <label for="guess" class="sr-only">Ответ</label>
-          <input id="guess" type="text" placeholder="Ваш ответ" enterkeyhint="done" autocapitalize="off" autocorrect="off" spellcheck="false">
-          <button type="submit">Проверить</button>
-        </form>
-        <p id="status" class="status" role="status" aria-live="polite"></p>
-
         <div id="finale" class="finale" hidden>
           <p class="finale-title">Факт собран!</p>
           <p id="finale-text" class="finale-text"></p>
+        </div>
+
+        <!-- Панель ввода прилипает к низу экрана, пока видна головоломка. -->
+        <div class="dock">
+          <form id="guess-form" class="guess" autocomplete="off" novalidate>
+            <label for="guess" class="sr-only">Ответ</label>
+            <input id="guess" type="text" placeholder="Ваш ответ" enterkeyhint="done" autocapitalize="off" autocorrect="off" spellcheck="false">
+            <button type="submit">Проверить</button>
+          </form>
+          <p id="status" class="status" role="status" aria-live="polite"></p>
         </div>
       </section>
 

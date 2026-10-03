@@ -94,6 +94,18 @@ export function fromDraft(draft, { date, knownFacts = [] } = {}) {
     else if (visible.includes(a)) warnings.push(`${label(i, n.clue)}: короткий ответ встречается внутри слова в подсказках — проверь, не подсказка ли это`);
     if (seen.has(a)) warnings.push(`${label(i, n.clue)}: тот же ответ, что у ребуса #${seen.get(a) + 1}`);
     else seen.set(a, i);
+    // Буквенные виды подсказок проверяются по буквам: в них чаще всего ошибаются.
+    const own = n.clue.replace(/\{[^]*\}/g, '');
+    const letters = (w) => [...normalize(w).replace(/[^\p{L}]/gu, '')];
+    const anagram = own.match(/анаграмма (?:слова )?«([^»]+)»/i);
+    if (anagram) {
+      if (letters(anagram[1]).sort().join('') !== letters(answers[i]).sort().join('')) errors.push(`${label(i, n.clue)}: это не анаграмма — буквы не совпадают с ответом`);
+      else if (normalize(anagram[1]) === a) errors.push(`${label(i, n.clue)}: анаграмма совпадает с самим ответом`);
+    }
+    const reversed = own.match(/«([^»]+)» наоборот/i);
+    if (reversed && letters(reversed[1]).reverse().join('') !== letters(answers[i]).join('')) {
+      errors.push(`${label(i, n.clue)}: слово наоборот не даёт ответ`);
+    }
     // Дополнительная подсказка: есть, не повторяет основную и тоже не называет ответ.
     const h = normalize(hints[i]);
     if (!h) errors.push(`${label(i, n.clue)}: нет дополнительной подсказки (третья часть после «|»)`);

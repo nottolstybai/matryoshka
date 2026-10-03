@@ -68,6 +68,20 @@ test('fromDraft: ловит типичные ошибки и не показыв
   assert.match(fromDraft(draft(), { knownFacts: [draft().fact] }).errors.join(), /уже есть в пуле/);
 });
 
+test('fromDraft: анаграмма и слово наоборот проверяются по буквам', () => {
+  const ok = draft();
+  ok.text = ok.text.replace('подсказка номер 2 с', 'анаграмма слова «табе» с').replace('подсказка номер 3 с', '«аммаг» наоборот с');
+  assert.deepEqual(fromDraft(ok).errors, []);
+
+  const badAnagram = draft();
+  badAnagram.text = badAnagram.text.replace('подсказка номер 2 с', 'анаграмма слова «табу» с');
+  assert.match(fromDraft(badAnagram).errors.join(), /ребус #4 .*это не анаграмма/);
+
+  const badReverse = draft();
+  badReverse.text = badReverse.text.replace('подсказка номер 3 с', '«амаг» наоборот с');
+  assert.match(fromDraft(badReverse).errors.join(), /ребус #6 .*слово наоборот не даёт ответ/);
+});
+
 test('nextDate: после последней даты пула, но не раньше сегодня', () => {
   const pool = [{ date: '2026-10-05' }, { date: '2026-10-03' }];
   assert.equal(nextDate(pool, '2026-10-03'), '2026-10-06');

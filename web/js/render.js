@@ -1,6 +1,6 @@
 // Отрисовка поля. Поле строится один раз (render), а при каждом ходе обновляется
 // точечно (collapse): заменяется только разгаданный ребус, соседи доезжают на новые
-// места через FLIP. Анимируются только transform и opacity.
+// места через FLIP. Анимируются transform и opacity; исключение — высота поля при схлопывании.
 //
 // Разметка:
 //   <span class="rebus depth-N active|locked|solved" data-id="N">
@@ -51,8 +51,9 @@ export async function collapse(container, game, id) {
     if (!box.isConnected) return;
   }
 
-  // FIRST: где стоят слова до подмены.
+  // FIRST: где стоят слова до подмены и какой высоты поле.
   const first = new Map();
+  const height = container.offsetHeight;
   if (animate) {
     for (const w of container.querySelectorAll('.w')) {
       if (box.contains(w)) continue;
@@ -96,6 +97,12 @@ export async function collapse(container, game, id) {
         ? w.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 320, easing: 'ease-out' })
         : w.animate([{ transform: `translateX(${dx}px)` }, { transform: 'none' }], { duration: 360, easing: EASE }),
     );
+  }
+  // Короткий ответ вместо длинной подсказки меняет число строк: высоту поля ведём плавно,
+  // иначе лист и всё под ним дёргаются. Это единственная анимация раскладки — на одном элементе.
+  const newHeight = container.offsetHeight;
+  if (Math.abs(newHeight - height) > 1) {
+    anims.push(container.animate([{ height: `${height}px` }, { height: `${newHeight}px` }], { duration: 360, easing: EASE }));
   }
   el.classList.remove('fresh');
   el.classList.add('fresh'); // цвет «верно» плавно уходит в обычный (CSS)

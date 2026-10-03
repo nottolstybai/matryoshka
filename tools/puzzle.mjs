@@ -3,10 +3,13 @@
 //   node tools/puzzle.mjs status          — следующая свободная дата, прошлые сферы, темы и факты (будущие — без спойлеров)
 //   node tools/puzzle.mjs check <draft>   — проверить черновик
 //   node tools/puzzle.mjs add <draft>     — проверить, дописать в puzzles/source.json и зашифровать в пул
+//   node tools/puzzle.mjs hints <file>    — дописать доп. подсказки старым головоломкам: { "дата": ["подсказка узла 0", …] }
+//                                           (после этого — make seal, он дополнит пул без смены id)
 //
-// Черновик — JSON { topic, domain, fact, text, date? }. В text ответ пишется рядом с подсказкой:
-//   «Медоносная {та, что собирает сладкое на {поле с травой|луг}у|пчела} умеет…»
-// Ответ — после последнего «|» внутри своих скобок (после вложенных ребусов).
+// Черновик — JSON { topic, domain, fact, text, date? }. В text ответ и дополнительная подсказка
+// пишутся рядом с ребусом: {подсказка|ответ|доп. подсказка}
+//   «Мыши боятся {домашний зверь, который мурлычет|кот|он говорит «мяу»}ов»
+// Ответ и доп. подсказка — в конце своих скобок, после вложенных ребусов.
 // Скрипт сам вырезает ответы, строит puzzle_text и nodes (clue/depth/parent) в авторском формате.
 // В выводе нет ответов — только номера ребусов и начало подсказки.
 
@@ -52,13 +55,15 @@ export function fromDraft(draft, { date, knownFacts = [] } = {}) {
     return { errors: [`скобки: ${err.message}`], warnings };
   }
 
-  // Ответ — хвост собственного текста узла после последнего «|».
+  // Хвост собственного текста узла: «|ответ|доп. подсказка».
+  const hints = [];
   const answers = raw.nodes.map((n, i) => {
-    const m = n.clue.match(/\|([^{}|]*)$/);
-    if (!m) errors.push(`${label(i, n.clue)}: нет «|ответ» перед закрывающей скобкой`);
+    const m = n.clue.match(/\|([^{}|]*)(?:\|([^{}|]*))?$/);
+    if (!m) errors.push(`${label(i, n.clue)}: нет «|ответ|доп. подсказка» перед закрывающей скобкой`);
+    hints.push((m?.[2] ?? '').trim());
     return m ? m[1].trim() : '';
   });
-  const puzzle_text = draft.text.replace(/\s*\|[^{}|]*\}/g, '}');
+  const puzzle_text = draft.text.replace(/\s*\|[^{}|]*(?:\|[^{}|]*)?\}/g, '}');
   if (puzzle_text.includes('|')) errors.push('лишний «|» в тексте: он разрешён только перед ответом');
   if (errors.length) return { errors, warnings };
 
@@ -69,7 +74,7 @@ export function fromDraft(draft, { date, knownFacts = [] } = {}) {
     domain: draft.domain.trim(),
     fact: draft.fact.trim(),
     puzzle_text,
-    nodes: tree.nodes.map((n, i) => ({ answer: answers[i], clue: n.clue, depth: n.depth, parent: n.parent })),
+    nodes: tree.nodes.map((n, i) => ({ answer: answers[i], clue: n.clue, depth: n.depth, parent: n.parent, hint: hints[i] })),
   };
   errors.push(...validate(source, tree).filter((e) => !e.startsWith('ответы не складываются')));
   // Своя формулировка без собранного текста: в нём были бы ответы.
@@ -89,6 +94,11 @@ export function fromDraft(draft, { date, knownFacts = [] } = {}) {
     else if (visible.includes(a)) warnings.push(`${label(i, n.clue)}: короткий ответ встречается внутри слова в подсказках — проверь, не подсказка ли это`);
     if (seen.has(a)) warnings.push(`${label(i, n.clue)}: тот же ответ, что у ребуса #${seen.get(a) + 1}`);
     else seen.set(a, i);
+    // Дополнительная подсказка: есть, не повторяет основную и тоже не называет ответ.
+    const h = normalize(hints[i]);
+    if (!h) errors.push(`${label(i, n.clue)}: нет дополнительной подсказки (третья часть после «|»)`);
+    else if (h.includes(a)) errors.push(`${label(i, n.clue)}: дополнительная подсказка содержит ответ`);
+    else if (h === normalize(n.clue.replace(/\{[^]*\}/g, ''))) errors.push(`${label(i, n.clue)}: дополнительная подсказка повторяет основную`);
   });
 
   const stats = {
@@ -165,7 +175,32 @@ async function main([cmd, arg]) {
     console.log(`Добавлено: ${date} · ${result.source.domain}`); // без темы — автор будет это решать
     return;
   }
-  console.error('Использование: node tools/puzzle.mjs status | check <draft.json> | add <draft.json>');
+  if (cmd === 'hints' && arg) {
+    const source = readJson(SOURCE);
+    const errors = [];
+    for (const [date, hints] of Object.entries(JSON.parse(readFileSync(arg, 'utf8')))) {
+      const p = source.find((x) => x.date === date);
+      if (!p) errors.push(`${date}: нет такой головоломки`);
+      else if (!Array.isArray(hints) || hints.length !== p.nodes.length) errors.push(`${date}: подсказок ${hints?.length}, а ребусов ${p.nodes.length}`);
+      else {
+        p.nodes.forEach((n, i) => {
+          const h = normalize(String(hints[i] ?? ''));
+          if (!h) errors.push(`${date}: ${label(i, n.clue)}: пустая подсказка`);
+          else if (h.includes(normalize(n.answer))) errors.push(`${date}: ${label(i, n.clue)}: подсказка содержит ответ`);
+          else n.hint = String(hints[i]).trim();
+        });
+      }
+    }
+    for (const e of errors) console.log(`  ОШИБКА: ${e}`);
+    if (errors.length) {
+      process.exitCode = 1;
+      return;
+    }
+    writeFileSync(SOURCE, `${JSON.stringify(source, null, 2)}\n`);
+    console.log('Подсказки записаны в исходник. Теперь: make seal');
+    return;
+  }
+  console.error('Использование: node tools/puzzle.mjs status | check <draft.json> | add <draft.json> | hints <file.json>');
   process.exitCode = 1;
 }
 

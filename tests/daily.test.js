@@ -12,7 +12,10 @@ test('puzzles.json: только зашифрованные головоломк
     assert.ok(isDate(p.date), `плохая дата ${p.date}`);
     assert.equal(parse(p.puzzle_text).nodes.length, p.nodes.length, p.date);
     for (const n of p.nodes) {
-      assert.deepEqual(Object.keys(n).sort(), ['hash', 'sealed'], p.date);
+      // hash и sealed обязательны; reveal и hint — зашифрованные подсказки, могут отсутствовать у старых дней.
+      const extra = Object.keys(n).filter((k) => !['hash', 'sealed', 'reveal', 'hint'].includes(k));
+      assert.deepEqual(extra, [], `${p.date}: лишние поля узла`);
+      assert.ok(n.hash && n.sealed, p.date);
       assert.match(n.hash, /^[0-9a-f]{64}$/, p.date);
     }
   }

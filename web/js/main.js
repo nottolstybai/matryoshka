@@ -1,12 +1,13 @@
-import { parse } from './parser.js';
+import { parse, assemble } from './parser.js';
 import { Game } from './model.js';
-import { answerHash, openAnswer } from './crypto.js';
+import { answerHash, openAnswer, openAux } from './crypto.js';
 import { render, collapse, nudge, reveal, celebrate, shake } from './render.js';
 import { localDate, isDate, parseDate, pickPuzzle } from './daily.js';
 import { loadProgress, saveProgress, dayEntry, dayStatus, stats } from './progress.js';
 import { renderCalendar } from './calendar.js';
 import { setupHowto } from './howto.js';
 import { setupThemeToggle } from './theme.js';
+import { verdict, formatTime } from './result.js';
 
 const $ = (sel) => document.querySelector(sel);
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -15,8 +16,13 @@ const autofocus = () => matchMedia('(pointer: fine)').matches;
 
 // Общее на всю страницу: пул, даты, прогресс. Заполняется один раз в main().
 const ctx = { puzzles: [], today: '', first: '', progress: { days: {} }, store: null };
-// Открытый день. При переключении дня заменяется целиком; всё асинхронное
-// сверяет, что его день ещё открыт, — иначе результат не применяется.
+// Открытый день: { date, puzzle, game, sel, hints, errors, elapsed, since }.
+//   sel     — id ребуса, выбранного кликом, или null;
+//   hints   — взятые подсказки: { id: { hint: текст, letter: буква, reveal: true } };
+//   errors  — число неверных ответов (null у дней, решённых до появления счётчика);
+//   elapsed — время решения в мс без текущего отрезка; since — начало текущего отрезка или null (пауза).
+// При переключении дня объект заменяется целиком; всё асинхронное сверяет,
+// что его день ещё открыт, — иначе результат не применяется.
 let day = null;
 const cal = { view: { year: 0, month: 0 }, selected: '' };
 
@@ -73,8 +79,28 @@ function showProgress(game) {
   const total = game.tree.nodes.length;
   if (dots.childElementCount !== total) dots.replaceChildren(...Array.from({ length: total }, () => document.createElement('i')));
   [...dots.children].forEach((dot, i) => dot.classList.toggle('on', i < game.solved.size));
-  $('#count').textContent = game.done ? 'Всё разгадано' : `${game.solved.size} из ${total}`;
+  $('#count').textContent = `${game.solved.size} / ${total}`;
 }
+
+// ---- таймер ---------------------------------------------------------------------
+
+const elapsed = (d) => d.elapsed + (d.since === null ? 0 : performance.now() - d.since);
+
+// Время идёт, пока день не собран, вкладка видна и не открыто окно «Как играть».
+function syncTimer() {
+  if (!day) return;
+  const run = !day.game.done && document.visibilityState === 'visible' && !$('#howto').open;
+  if (run && day.since === null) day.since = performance.now();
+  if (!run && day.since !== null) {
+    day.elapsed = elapsed(day);
+    day.since = null;
+  }
+  const t = elapsed(day);
+  $('#timer').hidden = day.game.done && t === 0; // день, решённый до появления таймера
+  $('#timer').textContent = formatTime(t);
+}
+
+// ---- сохранение -------------------------------------------------------------------
 
 function save(d) {
   const prev = dayEntry(ctx.progress, d.date, d.puzzle.id);
@@ -82,39 +108,202 @@ function save(d) {
     id: d.puzzle.id,
     solved: [...d.game.solved],
     answers: Object.fromEntries([...d.game.solved].map((id) => [id, d.game.answers[id]])),
+    hints: d.hints,
+    errors: d.errors,
+    time: Math.round(elapsed(d)),
     done: d.game.done,
     onTime: prev?.onTime || (d.game.done && localDate() === d.date),
   };
   saveProgress(ctx.progress, ctx.store);
 }
 
-// Финал: поле проявляется целиком, статистика и короткая карточка.
+// Останавливает таймер дня и запоминает время (уход со страницы, переключение дня).
+function park(d) {
+  if (!d || d.game.done) return;
+  d.elapsed = elapsed(d);
+  d.since = null;
+  if (d.elapsed >= 1000) save(d);
+}
+
+// ---- выбранный ребус и подсказки ---------------------------------------------------
+
+// Ребус, к которому относятся подсказки: выбранный кликом, а если доступен всего один — он.
+function targetId(d) {
+  if (d.game.done) return null;
+  if (d.sel !== null && d.game.isActive(d.sel)) return d.sel;
+  const active = d.game.activeIds();
+  return active.length === 1 ? active[0] : null;
+}
+
+// Обновляет подсветку выбранного ребуса, его подсказку в панели и кнопки подсказок.
+function showTarget() {
+  const d = day;
+  const board = $('#board');
+  const id = targetId(d);
+  for (const el of board.querySelectorAll('.rebus.selected')) el.classList.remove('selected');
+  // Доступные ребусы можно выбрать и с клавиатуры.
+  for (const el of board.querySelectorAll('.rebus:not(.solved)')) {
+    const box = el.querySelector(':scope > .box');
+    if (!box) continue;
+    if (d.game.isActive(Number(el.dataset.id))) {
+      box.tabIndex = 0;
+      box.setAttribute('role', 'button');
+    } else {
+      box.removeAttribute('tabindex');
+      box.removeAttribute('role');
+    }
+  }
+
+  // Строка выбранного ребуса всегда на месте (кроме собранного дня), а кнопки подсказок
+  // видны только при выбранном ребусе: высота панели при этом не меняется.
+  const anyHints = d.puzzle.nodes.some((n) => n.reveal || n.hint);
+  $('#target').hidden = d.game.done;
+  $('#tools').hidden = !anyHints;
+  $('#tools').classList.toggle('off', id === null);
+  $('#target-clue').classList.toggle('empty', id === null);
+  if (revealArmed && revealArmed.id !== id) resetRevealConfirm(); // переспрашивали про другой ребус
+  if (id === null) {
+    $('#target-clue').textContent = anyHints ? 'Нажмите на подсвеченный ребус, чтобы выбрать его и взять подсказку' : 'Нажмите на подсвеченный ребус, чтобы выбрать его';
+    $('#target-hint').hidden = true;
+    return;
+  }
+
+  board.querySelector(`.rebus[data-id="${id}"]`)?.classList.add('selected');
+  $('#target-clue').textContent = `{${assemble(d.game.tree.nodes[id], d.game.answers)}}`;
+  const node = d.puzzle.nodes[id];
+  const used = d.hints[id] ?? {};
+  const lines = [];
+  if (used.letter) lines.push(`Первая буква — «${used.letter}».`);
+  if (used.hint) lines.push(`Подсказка: ${used.hint}`);
+  $('#target-hint').hidden = !lines.length;
+  $('#target-hint').textContent = lines.join(' ');
+  $('#tool-hint').hidden = !node.hint;
+  $('#tool-hint').disabled = Boolean(used.hint);
+  $('#tool-letter').hidden = !node.reveal;
+  $('#tool-letter').disabled = Boolean(used.letter);
+  $('#tool-reveal').hidden = !node.reveal;
+  $('#tool-reveal').disabled = false;
+}
+
+// Клик по ребусу: доступный — выбрать (повторный клик снимает выбор), закрытый — показать, что мешает.
+function select(id) {
+  const d = day;
+  if (d.game.done || d.game.isSolved(id)) return;
+  if (!d.game.isActive(id)) {
+    setStatus('Этот ребус ещё закрыт — сначала разгадайте вложенный.', 'hint');
+    nudge($('#board'), d.game.blockers(id));
+    return;
+  }
+  d.sel = d.sel === id ? null : id;
+  showTarget();
+  if (autofocus()) $('#guess').focus({ preventScroll: true });
+}
+
+// «Открыть слово» требует второго нажатия: первое только переспрашивает.
+// revealArmed — { id ребуса, о котором спросили; timer } или null.
+let revealArmed = null;
+function resetRevealConfirm() {
+  clearTimeout(revealArmed?.timer);
+  revealArmed = null;
+  $('#tool-reveal').textContent = 'Открыть слово';
+  $('#tool-reveal').classList.remove('confirm');
+}
+
+async function useHint(kind) {
+  const d = day;
+  if (!d || d.game.done) return;
+  const id = targetId(d);
+  if (id === null) {
+    setStatus('Сначала выберите ребус: нажмите на один из подсвеченных.', 'hint');
+    return;
+  }
+  if (kind === 'reveal' && revealArmed?.id !== id) {
+    resetRevealConfirm();
+    $('#tool-reveal').textContent = 'Точно открыть?';
+    $('#tool-reveal').classList.add('confirm');
+    revealArmed = { id, timer: setTimeout(resetRevealConfirm, 4000) };
+    return;
+  }
+  if (kind === 'reveal') resetRevealConfirm();
+  const node = d.puzzle.nodes[id];
+  const text = await openAux(d.puzzle.id, kind === 'hint' ? `hint:${id}` : `reveal:${id}`, kind === 'hint' ? node.hint : node.reveal);
+  if (d !== day) return;
+  const used = (d.hints[id] ??= {});
+  if (kind === 'hint') used.hint = text;
+  if (kind === 'letter') used.letter = text[0].toUpperCase();
+  if (kind === 'reveal') {
+    if (!d.game.solve(id)) return;
+    used.reveal = true;
+    d.game.answers[id] = text;
+    solved(d, id, `Слово открыто — «${text}».`, 'hint');
+    return;
+  }
+  save(d);
+  showTarget();
+}
+
+// ---- ход игры ---------------------------------------------------------------------
+
+// Финал: панель ввода уходит, факт проявляется целиком, под ним — карточка с итогом.
 function finish(d, animated) {
   if (d !== day) return;
-  const input = $('#guess');
-  input.disabled = true;
-  input.value = '';
-  input.placeholder = 'Факт уже собран';
-  $('#guess-form button').disabled = true;
   const s = showStats();
+  const used = Object.values(d.hints);
+  const result = {
+    total: d.game.tree.nodes.length,
+    errors: d.errors,
+    hints: used.filter((h) => h.hint).length,
+    letters: used.filter((h) => h.letter).length,
+    reveals: used.filter((h) => h.reveal).length,
+  };
+  $('#finale-verdict').textContent = verdict(result);
+  $('#res-time').textContent = d.elapsed > 0 ? formatTime(d.elapsed) : '—';
+  $('#res-errors').textContent = d.errors ?? '—';
+  $('#res-hints').textContent = result.hints + result.letters; // текстовые подсказки и первые буквы вместе
+  $('#res-reveals').textContent = result.reveals;
   $('#finale-text').textContent = d.date === ctx.today
     ? `Решено фактов: ${s.total} · серия: ${s.streak}. Завтра будет новый факт.`
-    : `Решено фактов: ${s.total}. Это факт из архива — серия считается только за свой день.`;
+    : `Решено фактов: ${s.total}.`;
+
   const board = $('#board');
+  const show = () => {
+    $('.dock').hidden = true;
+    $('#finale').hidden = false;
+  };
   if (!animated) {
     board.classList.add('done');
-    $('#finale').hidden = false;
+    show();
     return;
   }
   reveal(board).then(() => {
     if (d !== day) return;
-    $('#finale').hidden = false;
+    show();
     celebrate(board);
   });
 }
 
+// Узел id только что разгадан (вводом или «открыть слово»): сохранить, обновить всё вокруг, схлопнуть.
+function solved(d, id, message, kind) {
+  if (d.sel === id) d.sel = null;
+  syncTimer(); // если это последний ребус — время останавливается здесь
+  const before = dayStatus(ctx.progress, d.date);
+  save(d);
+  if (dayStatus(ctx.progress, d.date) !== before) drawCalendar();
+  showProgress(d.game);
+  setStatus(message, kind);
+  // Финал запускает только последний разгаданный ребус, даже если анимации идут внахлёст.
+  const last = d.game.done;
+  collapse($('#board'), d.game, id).then(() => {
+    if (d !== day) return;
+    showTarget(); // родитель мог стать доступным — и единственным
+    if (last) finish(d, true);
+  });
+  showTarget();
+}
+
 // Показывает день: строит игру, восстанавливает прогресс, сбрасывает поле, шапку и календарь.
 function openDay(date) {
+  park(day);
   const puzzle = pickPuzzle(ctx.puzzles, date);
   const tree = parse(puzzle.puzzle_text);
   if (tree.nodes.length !== puzzle.nodes.length) throw new Error('Головоломка битая: число ребусов не совпадает с ответами');
@@ -125,7 +314,9 @@ function openDay(date) {
   const saved = entry?.answers ?? {};
   game.restore((entry?.solved ?? []).filter((id) => typeof saved[id] === 'string'));
   for (const id of game.solved) game.answers[id] = saved[id];
-  day = { date, puzzle, game };
+  // errors: у начатого заново дня — 0; у дня, решённого до появления счётчика, — неизвестно (null).
+  const errors = entry?.errors ?? (game.done ? null : 0);
+  day = { date, puzzle, game, sel: null, hints: entry?.hints ?? {}, errors, elapsed: entry?.time ?? 0, since: null };
 
   const isToday = date === ctx.today;
   $('#day').textContent = fmtDate(date);
@@ -139,20 +330,19 @@ function openDay(date) {
   drawCalendar();
 
   const input = $('#guess');
-  input.disabled = false;
   input.value = '';
-  input.placeholder = 'Ваш ответ';
   input.classList.remove('invalid');
-  $('#guess-form button').disabled = false;
+  $('.dock').hidden = false;
   $('#finale').hidden = true;
   $('#board').classList.remove('done');
 
   render($('#board'), game);
   showProgress(game);
   showStats();
+  showTarget();
+  syncTimer();
   if (game.done) {
     finish(day, false);
-    setStatus('Этот факт уже собран.', 'ok');
   } else {
     setStatus(game.solved.size ? 'Продолжайте: подсвеченные ребусы открыты.' : 'Начните с подсвеченных ребусов. Ответ — слово в начальной форме.');
     if (autofocus()) input.focus({ preventScroll: true });
@@ -170,6 +360,7 @@ function navigate(date, push) {
 }
 
 // Проверка ввода асинхронная (хеш и расшифровка). d — день, для которого отправлен ответ.
+// Слово сверяется со всеми доступными ребусами, а не только с выбранным: верный ответ не должен пропасть.
 async function check(d, value) {
   if (d !== day || d.game.done) return;
   const { game, puzzle } = d;
@@ -188,6 +379,8 @@ async function check(d, value) {
     } else {
       setStatus('Не подходит. Попробуйте другое слово.', 'bad');
       shake(input);
+      d.errors = (d.errors ?? 0) + 1;
+      save(d);
     }
     if (input.value.trim() === value) input.select();
     return;
@@ -201,21 +394,20 @@ async function check(d, value) {
   }
   if (d !== day) return; // день переключили, пока шла расшифровка, — ответ не засчитываем
   if (input.value.trim() === value) input.value = '';
-  const before = dayStatus(ctx.progress, d.date);
-  save(d);
-  if (dayStatus(ctx.progress, d.date) !== before) drawCalendar();
-  showProgress(game);
-  setStatus(`Верно — «${game.answers[id]}»!`, 'ok');
-  // Финал запускает только последний разгаданный ребус, даже если анимации идут внахлёст.
-  const last = game.done;
-  collapse(board, game, id).then(() => {
-    if (last) finish(d, true);
-  });
+  solved(d, id, `Верно — «${game.answers[id]}»!`, 'ok');
 }
 
 // Обработчики вешаются один раз; они работают с текущим днём через `day`.
 function setupPage() {
+  // Отправки ответов и подсказки идут строго по очереди: всё это асинхронное.
   let queue = Promise.resolve();
+  const enqueue = (job) => {
+    queue = queue.then(job).catch((err) => {
+      console.error(err);
+      setStatus('Не получилось проверить ответ. Обновите страницу.', 'bad');
+    });
+  };
+
   $('#guess-form').addEventListener('submit', (e) => {
     e.preventDefault();
     if (!day || day.game.done) return;
@@ -227,13 +419,32 @@ function setupPage() {
       return;
     }
     const d = day;
-    queue = queue
-      .then(() => check(d, value))
-      .catch((err) => {
-        console.error(err);
-        setStatus('Не получилось проверить ответ. Обновите страницу.', 'bad');
-      });
+    enqueue(() => check(d, value));
   });
+
+  // Выбор ребуса кликом или с клавиатуры (Enter / пробел на подсвеченном).
+  const pick = (target) => {
+    const el = target.closest('.rebus:not(.solved)');
+    if (el && day) select(Number(el.dataset.id));
+  };
+  $('#board').addEventListener('click', (e) => pick(e.target));
+  $('#board').addEventListener('keydown', (e) => {
+    if ((e.key !== 'Enter' && e.key !== ' ') || !e.target.matches('.box')) return;
+    e.preventDefault();
+    pick(e.target);
+  });
+
+  for (const kind of ['hint', 'letter', 'reveal']) {
+    $(`#tool-${kind}`).addEventListener('click', () => enqueue(() => useHint(kind)));
+  }
+
+  // Таймер: раз в секунду обновляем показ; пауза — когда вкладка скрыта или открыто «Как играть».
+  setInterval(syncTimer, 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') park(day);
+    syncTimer();
+  });
+  window.addEventListener('pagehide', () => park(day));
 
   // Ссылки календаря и «К факту дня» остаются обычными ссылками (их можно открыть в новой вкладке),
   // но обычный клик переключает день на месте.
@@ -266,7 +477,7 @@ async function main() {
     setupPage();
     openDay(chosenDate());
     setupHowto(ctx.store, () => {
-      if (!$('#guess').disabled && autofocus()) $('#guess').focus({ preventScroll: true });
+      if (day && !day.game.done && autofocus()) $('#guess').focus({ preventScroll: true });
     });
   } catch (err) {
     setStatus(location.protocol === 'file:' ? 'Откройте игру через локальный сервер: make dev' : err.message, 'bad');

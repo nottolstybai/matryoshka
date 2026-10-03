@@ -39,6 +39,13 @@ export class Game {
     return this.tree.nodes.filter((n) => this.isActive(n.id)).map((n) => n.id);
   }
 
+  // Засчитывает узел без ввода («открыть слово»). Только доступный: порядок изнутри наружу сохраняется.
+  solve(id) {
+    if (!this.isActive(id)) return false;
+    this.solved.add(id);
+    return true;
+  }
+
   // Ключ уже разгаданного узла (ввели слово повторно).
   isSolvedKey(key) {
     return [...this.solved].some((id) => this.#matches(id, key));

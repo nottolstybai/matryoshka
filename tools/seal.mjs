@@ -2,8 +2,9 @@
 //
 //   node tools/seal.mjs <source.json> [--replace]
 //
-// source.json — массив в авторском формате: { date, fact, puzzle_text, nodes: [{ answer, clue, depth, parent }] }.
-// Уже напечатанные даты пропускаются; --replace перепечатывает их (у дня сменится id, прогресс игроков за него сбросится).
+// source.json — массив в авторском формате: { date, fact, puzzle_text, nodes: [{ answer, clue, depth, parent, hint? }] }.
+// Уже напечатанные даты не перепечатываются, а дополняются недостающими полями (reveal, hint) с тем же id —
+// прогресс игроков сохраняется. --replace перепечатывает их заново (id сменится, прогресс за день сбросится).
 // Исходник с ответами в репозиторий не коммитится — см. .gitignore.
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -11,7 +12,7 @@ import { pathToFileURL } from 'node:url';
 import { parse, validate } from '../web/js/parser.js';
 import { isDate } from '../web/js/daily.js';
 import { normalize } from '../web/js/model.js';
-import { newPuzzleId, answerHash, sealAnswer, openAnswer } from '../web/js/crypto.js';
+import { newPuzzleId, answerHash, sealAnswer, openAnswer, sealAux, openAux } from '../web/js/crypto.js';
 
 const POOL = new URL('../web/data/puzzles.json', import.meta.url);
 
@@ -27,13 +28,40 @@ export async function sealPuzzle(p) {
 
   const id = newPuzzleId();
   const nodes = [];
-  for (const n of p.nodes) {
+  for (const [i, n] of p.nodes.entries()) {
     const node = { hash: await answerHash(id, n.answer), sealed: await sealAnswer(id, n.answer) };
     // Самопроверка: ответ проходит по хешу и расшифровывает своё слово.
     if ((await openAnswer(id, n.answer, node.sealed)) !== n.answer) throw new Error(`${p.date}: не сошлась расшифровка «${n.answer}»`);
+    await addAux(id, i, n, node);
     nodes.push(node);
   }
   return { date: p.date, id, puzzle_text: p.puzzle_text, nodes };
+}
+
+// Записи, которые игра открывает сама: слово для «первой буквы» и «открыть слово», дополнительная подсказка.
+async function addAux(id, i, plain, node) {
+  if (!node.reveal) {
+    node.reveal = await sealAux(id, `reveal:${i}`, plain.answer);
+    if ((await openAux(id, `reveal:${i}`, node.reveal)) !== plain.answer) throw new Error('не сошлась расшифровка reveal');
+  }
+  if (plain.hint && !node.hint) node.hint = await sealAux(id, `hint:${i}`, plain.hint);
+}
+
+// Дополняет уже напечатанную головоломку недостающими reveal и hint, не меняя id, hash и sealed.
+// Возвращает число дополненных узлов. Бросает исключение, если исходник не соответствует напечатанному.
+export async function upgradePuzzle(sealed, p) {
+  if (sealed.puzzle_text !== p.puzzle_text || sealed.nodes.length !== p.nodes.length) {
+    throw new Error(`${p.date}: исходник не совпадает с напечатанной головоломкой (нужен --replace)`);
+  }
+  let changed = 0;
+  for (const [i, n] of p.nodes.entries()) {
+    const node = sealed.nodes[i];
+    if ((await answerHash(sealed.id, n.answer)) !== node.hash) throw new Error(`${p.date}: ответ узла ${i} не совпадает с напечатанным (нужен --replace)`);
+    const before = Object.keys(node).length;
+    await addAux(sealed.id, i, n, node);
+    if (Object.keys(node).length !== before) changed++;
+  }
+  return changed;
 }
 
 async function main([src, ...flags]) {
@@ -46,7 +74,8 @@ async function main([src, ...flags]) {
   let sealed = 0;
   for (const p of source) {
     if (byDate.has(p.date) && !replace) {
-      console.log(`${p.date}: уже есть, пропускаю (--replace, чтобы перепечатать)`);
+      const changed = await upgradePuzzle(byDate.get(p.date), p);
+      console.log(changed ? `${p.date}: дополнено узлов — ${changed}` : `${p.date}: без изменений`);
       continue;
     }
     byDate.set(p.date, await sealPuzzle(p));

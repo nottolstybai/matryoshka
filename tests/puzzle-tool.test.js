@@ -9,8 +9,8 @@ const intro = 'Это очень длинный выдуманный факт д
 const outro = 'и ещё немного обычного текста в конце, чтобы длина факта была как у настоящих.';
 function draft() {
   const rebus = (i) => {
-    const deep = i === 0 ? ' и {третий уровень|омега}ом' : '';
-    return `{подсказка номер ${i + 1} с {вложенная подсказка${deep}|${KIDS[i]}}ом|${TOPS[i]}}`;
+    const deep = i === 0 ? ' и {третий уровень|омега|последняя буква}ом' : '';
+    return `{подсказка номер ${i + 1} с {вложенная подсказка${deep}|${KIDS[i]}|буква поменьше}ом|${TOPS[i]}|буква побольше}`;
   };
   return {
     topic: 'греческие буквы',
@@ -26,14 +26,22 @@ test('fromDraft: черновик превращается в авторский
   assert.deepEqual(r.stats, { rebuses: 13, top: 6, nested: 7, maxDepth: 3, factLength: r.source.fact.length });
   assert.ok(!r.source.puzzle_text.includes('|'));
   assert.ok(!r.source.puzzle_text.includes('альфа'));
-  assert.deepEqual(r.source.nodes[0], { answer: 'альфа', clue: 'подсказка номер 1 с {вложенная подсказка и {третий уровень}ом}ом', depth: 1, parent: null });
-  assert.deepEqual(r.source.nodes[2], { answer: 'омега', clue: 'третий уровень', depth: 3, parent: 1 });
+  assert.deepEqual(r.source.nodes[0], { answer: 'альфа', clue: 'подсказка номер 1 с {вложенная подсказка и {третий уровень}ом}ом', depth: 1, parent: null, hint: 'буква побольше' });
+  assert.deepEqual(r.source.nodes[2], { answer: 'омега', clue: 'третий уровень', depth: 3, parent: 1, hint: 'последняя буква' });
 });
 
 test('fromDraft: ловит типичные ошибки и не показывает ответы', () => {
   const noAnswer = draft();
-  noAnswer.text = noAnswer.text.replace('|йота}', '}');
-  assert.match(fromDraft(noAnswer).errors.join(), /ребус #2 .*нет «\|ответ»/);
+  noAnswer.text = noAnswer.text.replace('|йота|буква поменьше}', '}');
+  assert.match(fromDraft(noAnswer).errors.join(), /ребус #2 .*нет «\|ответ/);
+
+  const noHint = draft();
+  noHint.text = noHint.text.replace('|бета|буква побольше}', '|бета}');
+  assert.match(fromDraft(noHint).errors.join(), /ребус #4 .*нет дополнительной подсказки/);
+
+  const hintGivesAway = draft();
+  hintGivesAway.text = hintGivesAway.text.replace('|бета|буква побольше}', '|бета|это бета-версия}');
+  assert.match(fromDraft(hintGivesAway).errors.join(), /ребус #4 .*дополнительная подсказка содержит ответ/);
 
   const wrongFact = draft();
   wrongFact.fact = wrongFact.fact.replace('бета', 'бэта');
@@ -46,11 +54,11 @@ test('fromDraft: ловит типичные ошибки и не показыв
   assert.match(fromDraft(giveaway).errors.join(), /ребус #6 .*спрятан внутри слова/);
 
   const twoWords = draft();
-  twoWords.text = twoWords.text.replace('|зета}', '|зета два}');
+  twoWords.text = twoWords.text.replace('|зета|', '|зета два|');
   twoWords.fact = twoWords.fact.replace('зета', 'зета два');
   assert.match(fromDraft(twoWords).errors.join(), /одним словом/);
 
-  const small = { ...draft(), text: '{короткий|факт}.', fact: 'факт.' };
+  const small = { ...draft(), text: '{короткий|факт|доп}.', fact: 'факт.' };
   const smallErrors = fromDraft(small).errors.join();
   assert.match(smallErrors, /ребусов 1/);
   assert.match(smallErrors, /нет вложенных/);

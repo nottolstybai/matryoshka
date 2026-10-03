@@ -97,6 +97,15 @@ test('Game: подсказывает, что слово верное, но ре�
   assert.ok(!game.isSolvedKey('еж'));
 });
 
+test('Game.solve: «открыть слово» работает только для доступного ребуса', () => {
+  const game = new Game(parse(samplePuzzle.puzzle_text), keys(samplePuzzle));
+  assert.equal(game.solve(0), false, 'закрытый не открывается');
+  assert.equal(game.solve(1), true);
+  assert.equal(game.solve(1), false, 'уже разгаданный — тоже');
+  assert.equal(game.solve(0), true, 'после вложенного — можно');
+  assert.deepEqual([...game.solved], [1, 0]);
+});
+
 test('Game.restore: восстанавливает прогресс, отбрасывает чужие id', () => {
   const game = new Game(parse(samplePuzzle.puzzle_text), keys(samplePuzzle));
   game.restore([1, 3, 99, -1, '0']);

@@ -1,7 +1,10 @@
 // Прогресс игрока в localStorage.
-// Формат: { days: { 'YYYY-MM-DD': { id, solved: [n…], answers: { n: слово }, done, onTime } } }
+// Формат: { days: { 'YYYY-MM-DD': { id, solved: [n…], answers: { n: слово }, hints, errors, time, done, onTime } } }
 //   id      — id головоломки; если пул поменялся и дате досталась другая головоломка, запись не применяется;
 //   answers — разгаданные слова: в puzzles.json их нет в открытом виде, а показывать после перезагрузки надо;
+//   hints   — взятые подсказки: { n: { hint: текст, letter: буква, reveal: true } };
+//   errors  — число неверных ответов;
+//   time    — время решения в миллисекундах (пока вкладка была видна);
 //   onTime  — факт собран в свой же день (только такие дни идут в серию).
 
 import { dayNumber } from './daily.js';

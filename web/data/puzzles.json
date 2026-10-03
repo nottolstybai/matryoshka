@@ -93,5 +93,80 @@
         "sealed": "Q4wzO/pkG17Rv+qQab5/h3hHLbFr3RPpDYwIWWnrbxwKXa0am9k8ej8/NOs="
       }
     ]
+  },
+  {
+    "date": "2026-10-06",
+    "id": "By8vooM3Itt62pYRR06jlQ==",
+    "puzzle_text": "Слово «{машина-слуга, которая работает вместо {разумный житель планеты {третья от Солнца, наш общий дом}}а}» придумал не {тот, кто сочиняет книги; Толстой, Чехов и Гоголь по профессии} Карел {фамилия чешского автора романа «Война с саламандрами» и драмы «Белая {недуг, хворь}»}, а его брат {чешское имя, соответствующее русскому Иосиф; так звали композитора Гайдна}, {мастер с {деревянная подставка для холста}ом и кистями; Репин и Шишкин по роду занятий}. Карел хотел назвать искусственных людей из своего нового сочинения «лаборами», от латинского слова со значением «{работа и усилие; без него, по пословице, не вытащишь и рыбку из {маленький водоём, часто в парке}а}». Тот, не выпуская кисть изо рта, предложил {один из нескольких ответов в тесте, их часто четыре на каждый {то, на что отвечают}} от чешского слова, означающего тяжёлую подневольную работу. {произведение для {здание со сценой, где играют актёры}а, разделённое на действия; комедия и трагедия — её виды} с этим словом вышла в 1920 {двенадцать {тридцать дней в календаре, как сентябрь}ев подряд}у.",
+    "nodes": [
+      {
+        "hash": "396947687b20c1b6de4657848fd93818850947795544b94c3e519b48db83f76a",
+        "sealed": "nR8FvHj8JB5MRMnjOISZklFDscHXQKtNIOnj+M6AO5NktyCoghU="
+      },
+      {
+        "hash": "725313d52548a478c71d02e2f135bbbddbc214f0756937884b67f80cb038ddda",
+        "sealed": "ZfKFvLjm5JsPtxtMyCsQSdE2XKBM+4zflOEV1s8DHd1anqQxkTUNhEjt"
+      },
+      {
+        "hash": "1726c5a0264bcc04e87d8aa6c346163e0af0f777a39273ac024652fd69468351",
+        "sealed": "RPi4yXMINADiR08K6EHft0WidPy6OZH/iujcjrOygICf7zE51ZE="
+      },
+      {
+        "hash": "43dc96bfc1f893192ff98c020167c76063cc56c102b96e7b33e4ac29ae468f8a",
+        "sealed": "uda+vgl12s65K/OpAV6Y22Q9vb3ipfbsl8CroriQmmXTcgs6RN2K0H/upmY="
+      },
+      {
+        "hash": "b4f767618ce7e516be1912e4a3fcea2c1439d0a4b6f79c42f80096cb9661ab38",
+        "sealed": "cdz7FnNTGVMDk88zEEBYK5M1s3YTmcNoH6XyItP1Unlav+jh7xc="
+      },
+      {
+        "hash": "b68d6090274f36b1cb15fca55ce72a72842c95c4888e5bd020031dcb2357162a",
+        "sealed": "8y6DhE/7DKCFNII4mQwTAwF0YASD2H+ZdZ6joOevZXdOgj/6Itd2/6GL"
+      },
+      {
+        "hash": "c297a5f49a83b316f68d69ba927acbda787d5948d06364a68571d6f3cfece69f",
+        "sealed": "W8For+6ruVDvNV4rIiclBs8GehslyxEWvBDotNSgAl8nWYuKdlw="
+      },
+      {
+        "hash": "dc23615ed7bb117371699a51deb1600f072a3679deba4c763dd51f9d44a3c900",
+        "sealed": "tmq/ZZunVILGxYZcpa8wGDZkwa+/A0oxcoMk3TkaV/zRURPKivaEg7G69FU="
+      },
+      {
+        "hash": "ad74138a8aa7d77a81810d80d6c9605764409ef6835838817304550260e22225",
+        "sealed": "hN26CXxQk0cg4CpUT6P/Gk2xap0AWAlxp9kM7KsA4lsGVFj9aNcxQCz1I/w="
+      },
+      {
+        "hash": "6276ba7e064a4b954a3d3600d143a904c669994e06e084be9f27d4724b893cb7",
+        "sealed": "0mvP69YmYOF/nHhJXIpuCKu9DJvWXtN9xY4BR0CSa5++OLpq"
+      },
+      {
+        "hash": "428314de447df9bf7734e33667b8633047a42a995cd3262e8e8ebe7e0b7ac413",
+        "sealed": "5HgAyZMosuRBs3T+skRgEcPwaprvfsmaNTpobm4da6AbbBtw"
+      },
+      {
+        "hash": "7b23e4011213aa2353048f499dfcb4dc5be3b35a99768e4f2f2c82c4fb1ef3bb",
+        "sealed": "/Ie12jTAf/J52FoCan0NCfKQgARHXqPmw15nqSWrlv8ME/Nzz75bfikw"
+      },
+      {
+        "hash": "10f14f38f33abf4c8e40c249bfa2c6cfdc6c82a527a8c656b845e30103331766",
+        "sealed": "o03xKFGZlkJLuLEMmgH8uWF3gERyx0hE6yn+wA0o+q7tpkbp94dPUA=="
+      },
+      {
+        "hash": "cd13e5bcad3336652a064366439d01fddc37c7ecd880985a290de928c064f215",
+        "sealed": "LvygQWKJCOzkwt4BwaKIWJPj+VKnC0PHzuNilraaJvL17Swdiu0="
+      },
+      {
+        "hash": "faed1d3228bb25fd5fcab5086524b56a99319a0d2ed2938e05b280ca12c79ddf",
+        "sealed": "mOclbeFHRcxn5orV+XChhSZicyGa0+753/v5swTS0wRzS2ezb8c="
+      },
+      {
+        "hash": "adfd2fe9eafdbea2977039dab3cab654574cc3d3a5be541a03036fe584fd3e5d",
+        "sealed": "dy4na2tdl7kV46rkprOjlv6DhNL2C4j1heSRLM44wbTCAg=="
+      },
+      {
+        "hash": "6849b8648f9a79317b59df56715d7165bd6394d06a46b818c83dbb06e5091b9c",
+        "sealed": "aNZ1DFYOqOd6zp4n6cx04HiGC5jSYDK2viSlfWtrDl9OhQvLhAw="
+      }
+    ]
   }
 ]

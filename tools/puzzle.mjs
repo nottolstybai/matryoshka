@@ -24,7 +24,7 @@ const SOURCE = new URL('../puzzles/source.json', import.meta.url);
 const POOL = new URL('../web/data/puzzles.json', import.meta.url);
 
 // Требования к головоломке.
-export const LIMITS = { minRebuses: 12, maxRebuses: 18, minFact: 150, goodFact: 200, maxFact: 450 };
+export const LIMITS = { minRebuses: 12, maxRebuses: 22, minFact: 150, goodFact: 200, maxFact: 450 };
 
 const readJson = (url) => (existsSync(url) ? JSON.parse(readFileSync(url, 'utf8')) : []);
 const short = (s) => (s.length > 40 ? `${s.slice(0, 40)}…` : s);
@@ -89,9 +89,20 @@ export function fromDraft(draft, { date, knownFacts = [] } = {}) {
   tree.nodes.forEach((n, i) => {
     const a = normalize(answers[i]);
     if (!/^[\p{L}-]+$/u.test(answers[i])) errors.push(`${label(i, n.clue)}: ответ должен быть одним словом из букв`);
-    if (words.has(a)) errors.push(`${label(i, n.clue)}: ответ стоит в тексте подсказок целым словом`);
-    else if (a.length >= 4 && visible.includes(a)) errors.push(`${label(i, n.clue)}: ответ спрятан внутри слова в подсказках`);
-    else if (visible.includes(a)) warnings.push(`${label(i, n.clue)}: короткий ответ встречается внутри слова в подсказках — проверь, не подсказка ли это`);
+    // Вид «скрытое слово» («спрятан в «пистолете»») нарочно содержит ответ внутри другого слова —
+    // для него собственный текст подсказки из проверки исключается, но ответ в нём обязан быть.
+    const ownText = n.parts.filter((x) => typeof x === 'string');
+    const hidden = /спрятан[оа]? (в|внутри)/i.test(ownText.join(' '));
+    let seenText = visible;
+    let seenWords = words;
+    if (hidden) {
+      if (!normalize(ownText.join(' ')).includes(a)) errors.push(`${label(i, n.clue)}: заявлено скрытое слово, но ответа внутри подсказки нет`);
+      seenText = normalize(ownText.reduce((t, part) => t.replace(part, ' '), puzzle_text));
+      seenWords = new Set(seenText.split(/[^\p{L}\p{N}-]+/u));
+    }
+    if (seenWords.has(a)) errors.push(`${label(i, n.clue)}: ответ стоит в тексте подсказок целым словом`);
+    else if (a.length >= 4 && seenText.includes(a)) errors.push(`${label(i, n.clue)}: ответ спрятан внутри слова в подсказках`);
+    else if (seenText.includes(a)) warnings.push(`${label(i, n.clue)}: короткий ответ встречается внутри слова в подсказках — проверь, не подсказка ли это`);
     if (seen.has(a)) warnings.push(`${label(i, n.clue)}: тот же ответ, что у ребуса #${seen.get(a) + 1}`);
     else seen.set(a, i);
     // Буквенные виды подсказок проверяются по буквам: в них чаще всего ошибаются.

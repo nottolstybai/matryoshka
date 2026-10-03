@@ -82,6 +82,20 @@ test('fromDraft: анаграмма и слово наоборот провер�
   assert.match(fromDraft(badReverse).errors.join(), /ребус #6 .*слово наоборот не даёт ответ/);
 });
 
+test('fromDraft: вид «скрытое слово» может содержать ответ внутри своей подсказки, но не в чужой', () => {
+  const ok = draft();
+  ok.text = ok.text.replace('подсказка номер 3 с', 'спрятан в «гаммаглобулине» с');
+  assert.deepEqual(fromDraft(ok).errors, []);
+
+  const notInside = draft();
+  notInside.text = notInside.text.replace('подсказка номер 3 с', 'спрятан в «программе» с');
+  assert.match(fromDraft(notInside).errors.join(), /ребус #6 .*ответа внутри подсказки нет/);
+
+  const leakedElsewhere = draft();
+  leakedElsewhere.text = leakedElsewhere.text.replace('подсказка номер 3 с', 'спрятан в «гаммаглобулине» с').replace('подсказка номер 4 с', 'подсказка про гаммаизлучение с');
+  assert.match(fromDraft(leakedElsewhere).errors.join(), /ребус #6 .*спрятан внутри слова/);
+});
+
 test('nextDate: после последней даты пула, но не раньше сегодня', () => {
   const pool = [{ date: '2026-10-05' }, { date: '2026-10-03' }];
   assert.equal(nextDate(pool, '2026-10-03'), '2026-10-06');

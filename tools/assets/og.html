@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- Макет превью ссылки 1200×630: открывается headless-Chrome и снимается в PNG (make assets). -->
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400..700&family=Inter:wght@400..700&display=swap">
+<style>
+  html, body { margin: 0; }
+  body {
+    width: 1200px; height: 630px; box-sizing: border-box; padding: 70px 84px;
+    background: #f4efe4; color: #1e1a14; font-family: 'Inter', sans-serif;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .top { display: flex; align-items: center; gap: 28px; }
+  .top img { width: 112px; height: 112px; border-radius: 26px; box-shadow: 0 0 0 2px #e4dccb; }
+  .eyebrow { margin: 0 0 6px; font-size: 22px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #847b6c; }
+  h1 { margin: 0; font: 700 92px/1 'Literata', serif; letter-spacing: -.01em; }
+  .card {
+    background: #fcfaf5; border: 2px solid #e4dccb; border-radius: 28px; padding: 38px 44px;
+    font: 400 44px/1.5 'Literata', serif;
+  }
+  .a { color: #8f4312; }
+  .b { color: #b4571c; font-weight: 600; }
+  .foot { font-size: 26px; color: #4e473c; }
+</style>
+<div class="top">
+  <img src="../../web/favicon.svg" alt="">
+  <div>
+    <p class="eyebrow">Ежедневный факт в ребусах</p>
+    <h1>Матрёшка</h1>
+  </div>
+</div>
+<div class="card">Мыши боятся <span class="a"><span class="b">{</span>домашний зверь, который мурлычет<span class="b">}</span></span>ов.</div>
+<div class="foot">Разгадывайте слой за слоем, пока факт не соберётся целиком</div>

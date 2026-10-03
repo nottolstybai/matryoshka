@@ -6,3 +6,6 @@ node_modules/
 
 # открытые головоломки с ответами — только локально
 puzzles/
+
+# промежуточный файл make assets
+tools/assets/icon-512.png

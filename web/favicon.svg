@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Три матрёшки одна в другой: внешняя, вложенная и самая маленькая. -->
+  <defs>
+    <path id="doll" d="M32 7c-7 0-11 5-11 11 0 3.500 1.200 6 2.600 8C16 30 11 38 11 46c0 7 5 12 12 12h18c7 0 12-5 12-12 0-8-5-16-12.600-20 1.400-2 2.600-4.500 2.600-8 0-6-4-11-11-11z"/>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#f4efe4"/>
+  <use href="#doll" fill="#b4571c"/>
+  <use href="#doll" fill="#f4efe4" transform="translate(32 54) scale(.52) translate(-32 -58)"/>
+  <use href="#doll" fill="#b4571c" transform="translate(32 51) scale(.27) translate(-32 -58)"/>
+</svg>

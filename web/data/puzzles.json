@@ -1,98 +1,128 @@
 [
   {
     "date": "2026-10-01",
-    "id": "BwV1VZzKZsNEufRLzcz7zA==",
-    "puzzle_text": "Обычная {стопка картонных прямоугольников с мастями, которую перемешивают перед партией в {глупец; в сказках его зовут {имя, которое носили и царь Грозный, и сказочный царевич}, и в конце он женится на царевне}а} — всего 52 карты, но разложить их можно столькими {метод, приём; народный выручает там, где инструкция молчит}ами, что это {семь, сто или миллион; у {январь или июль}а оно бывает первым и тридцатым} записывается 68 цифрами. {учёный, чья стихия — теоремы и уравнения: Эйлер, Гаусс или {петербуржец, который доказал гипотезу Пуанкаре и отказался от премии в миллион долларов}}и обозначают его «52!», где восклицательный {символ; дорожный висит на {опора для фонаря или проводов у обочины}е, а водяной прячется в купюре} читается как «{произведение всех натуральных чисел от единицы до данного}». Даже если бы каждый {разумный двуногий; по Горькому, это звучит гордо} на Земле тасовал карты раз в секунду с самого Большого {грохот, вспышка и ударная волна; его устраивает {шашки, изобретённые Нобелем: ими рвут скалы}}а, ни один {то, как легли карты; у гадалки он на Таро} почти наверняка не выпал бы дважды.",
+    "id": "x3nmw6i99tDp13uSMzh2hQ==",
+    "puzzle_text": "В {{число лет одиночества у {{«Настоящий ___» у Пугачёвой; три большие звезды на погонах}у у него никто не пишет}а; оно же — фронтовая норма в граммах}{юридические и физические; действующие — в начале пьесы} {ёжик искал в нём лошадку; а «сиреневый» над нами проплывает}ного {так древние называли Британию — по легенде, за белые скалы; так же зовут клуб из Брайтона}а}е XVIII века {у {туда показывает мох на стволе и синий конец стрелки}янина — в шам{польский господин и козлоногий бог}ском, у {уральский атомный комбинат, советская радиостанция и башня на {Горн, но не пионерский; Канаверал, но не космодром}е — одним словом}овского — перед последним днём {африканер из войны с англичанами; он же сверло нефтяника}жуя} стоил как {бывшая {на него переходят, выпив на брудершафт}{что отвечает из болота невеста Ивана-царевича}; а {он попал с корабля на бал и обещал туда больше не ездить} требовал её себе дважды}, поэтому чаще его не ели, а на один вечер брали напрокат. Его ставили в центр стола как знак богатства, а утром возвращали хозяину. Так он кочевал по гостиным, пока не начинал {то, что {ни она, ни мясо; молчит и бьётся об лёд} начинает с головы, а узник продолжает в {сибирская крепость первопроходцев, позже — место заключения}е}, — и лишь тогда его продавали тому, кто мог позволить себе его съесть.",
     "nodes": [
       {
-        "hash": "11b51485f5a88f6685a28e8051eeccfee03dbb648043f949cbe3f9b4b29c61ca",
-        "sealed": "dDEKukmwgnB6aDRrKaI8WBbKvOOprVoqmDD2sd9O9nBva5kVHUNsBw==",
-        "reveal": "MJkHKBgveHSxTZJ98MRnWoI8XbWBsPiFNLPyT8N5sVyYSxFApMtzkQ==",
-        "hint": "W+rIsIlAUDzBZuGteBvCF+vB4NPu7FYVluMReEv6Y78SrqfoyAJaiMQgWBmlR1oMesrKEya4irGUkb9ysF8E0diWPVLXl/OFsi7EUWZElUdjIybl2Gr28z8FFsSecUYgvdDka28bZ9lNB7Va/NSt48uWU/jAHu7YUKHQ95Hxb4v3Tjl753PjvWt6eUOm6eB2a1kTf9RJqRkqosp88GtIsA=="
+        "hash": "3af65a68675b7d73452492daa5dbdfa5b7b4c630e0efaa9fb760ec558b9180d9",
+        "sealed": "IVAjr6QIVfEZ6so9FYP2CLzC6QwctUkjr9w4x9XSFiXbRRI3xconpQ==",
+        "reveal": "Hsi7/Ylq06pSLHFuwo1DIIPoWAFD5uMPL9NB+9ruCJfupWDj709g4w==",
+        "hint": "cbDHWXbsXndDx/zupxXFu2UXoA/L1sl0kIsPuW2wQB6I/9s/lQbQ+Nv/F8GnQxpEW6VuVg0t"
       },
       {
-        "hash": "abfb879425a5482668510b0bf0e8dc7ab115aff9d8d78f9ac73d38ff58506e4e",
-        "sealed": "oCHAHQViJIYRcJDfla+g3UBZMNaNfRDkwBGa6WaW0DKnkfuYKrM=",
-        "reveal": "0Gz13wyt9Hacm57jISj0L/ARxNz7mT+Uzb2Rr9YoYJsJCZpYHw0=",
-        "hint": "Yk7FNbA3GnNRRtc012WRgiWltSsdhgB51yAt/eG110aOGF+SPYhoUUSV0NC/mdzMHvEvZtxHshumTJXMRATcuHFx3qZEY6W9n+21ATVkDJl6myLXR/Em8+SUKN2SJFbxtImozHB6CKIgfbQ6iE9JKH5u2dd+XD8sRQJhsn7M9g1VXFlsC0E6wg7GwX/QWfgbFnWR5zvQkNY72Ky1/x6nuK2K0GrQqiA5JfyVkzReLX9SDjiE"
+        "hash": "8f2d355ac483b4e8a497c65524dd53756ca207f2d930398c188c13ccb9b1fa92",
+        "sealed": "8vwlmVrW6DpqfBhqZlckJnT8y8nokj1NQEIs/sMLRexfHQ==",
+        "reveal": "DSNWvLitbWJ/Ol3aAOBJ+bVZ9kS0PHDTZQ1v82UGZ/pqOQ==",
+        "hint": "JcNSLLu9bLj9/jN8oNwNYlXqGqFJQZbBjepl+6VHB9oMAT/uqMJyxItktqkB0LwTzWa7X1HTxJYg"
       },
       {
-        "hash": "0fc4167e6c16ddc7de5630237e9b72655aa6c0f07aeb7b5debcbcfe573e5ea34",
-        "sealed": "Bo7WcUatooMWSjeXM3Ldb973tzyKznDleRAfOhsN27GtkpnC",
-        "reveal": "9x4Ge8TvqQMZfesguEfg/WhhR/uJ+IpvjRMOut3IQ+GUMaKs",
-        "hint": "r9sBCcU9tmBlAiR5xIWOk0SvqvKKxl30p0odfCDi9iUy4RipTg9xm3ObFpjJmJVElQimS5lX0Ajuo/44Lz7otIx50CXyXHRoBpE3vDeOry/IYVdMPgOHXEuPBjJEfp02OHFYsWlBHOel83Bivf647eiTZWhP+6ghbNBC9eRKW3Riywk/rt1k4lZfwUZtBx3WJ+YjDM/HImwzLNE="
+        "hash": "7208b1436ef03b5a6b71553dfdb8b290cb99680109cd28b4b65f47bfff88ed61",
+        "sealed": "Ry9OC6lkMfSre3aynHF7ULaTrLwoKMGASa7RMHyB2are16v8TkgN0A==",
+        "reveal": "asDwVfo0frykSkUoLUR6o8miXVl6nZizBzQOlkaYk5TzvJ81Nz0A/Q==",
+        "hint": "rKcBsjWeqw5RXLP9sz9ATsWz4/Bm9z9EWmCTJoxARe/m7M7eGArjis27st3LlKVc2WojzSdUmCiCFSCXE2QiUTUMiUPv19TshSOBgA1oA5V9Gkr/FkSGiLnXm8F9VJ3lcuHmmXFNJiZZizWoUHqoUh5rKA=="
       },
       {
-        "hash": "cf6d4708e005a3afcc7c8a88b349f7a4a13ffa31725a29590e45a4c034eb4cd8",
-        "sealed": "RWrp31/a00lHaVhvyFpgBAJY9TJBRWfQhLvOMkR0AD460XJoKpSKJw==",
-        "reveal": "yrrv96jk4A6vYpP+iHHbFUisLiWnsb1qU1V/n128Fy41mPQUT3EwAQ==",
-        "hint": "9/IoA1q4szuORPMuB+rQ6E1X50ysqJ2La3ol5aQ2ouTw9m5/kETinFrOE6MNmUQQZSVBisixOdPwRnZxuXOQjXjRCxmVeBApbRdhzbLfT56busCuasbkWhkQWbG0bjgrri6jfxtqv2Z/qjJug93n5lrNsuLoPAk8opykxQk+Lg1BR15PfYWcv9Hu3MUV0ybF95s="
+        "hash": "481c8cb26ca28a18d4d3c44cb8653d141e0519bcc066d1df59a442d7cb4b8f28",
+        "sealed": "1FwNwICHRfiH3lhwgEo4x/hBRZCRQiDmVM59fDrm5JNAnh/KRMxlxE77M3Qsog==",
+        "reveal": "bEH01wp5hKX7EgCPFYZuy8tZkPZT2c9J54ogCx3ihRobcvWBsoV6Q8L69dL4gw==",
+        "hint": "NzEkiqs8CwpDfxCgKEm+sKq7rklVlQrvgmPIgmwcAdlR2OKtEtgoacmNiO3Yexsfsm8nVKCvJywgtdGagWU0btVs3BYt+pYuIuGDXMR92GtzxGfhXIQqq1+GatyxhDMJ9dPCk/m1byXIBCM0D7Q="
       },
       {
-        "hash": "9d708c35c4b00d7fbc525d8b7a7c1baca7a780fb912d032986feff89a8736c70",
-        "sealed": "7FldGJ/RLEr82oAGKrWiv2UZ0A2Tg5Qq+753Kz187v9QRWF0Ns8=",
-        "reveal": "6fXpOYBBqPtDvV45vB450JO1QTSakSposKEWq1+WvzgFLhpjXvk=",
-        "hint": "s8T8KQ52hXKzhK1U6VroDKma4LavcpuY3ydvqcFlYtvLIZHr2mKO+KobmLPP09gfK0NfLZUa9Wv8PVDoQVuXoXaG8U7D/53m8J3O6dK2FssHoiyUGNlzgOaxb7zAUoQEYmz7uTTzLWBCaY5OcqP9fsdUdRd+C3dZdTNbvZQRp9HalrpaslcKH9Vwcao94JWm"
+        "hash": "895754442bb52726582954ae7435a88588dc44fdfb47a29d21b179fb73f352f8",
+        "sealed": "HG233/b4nvOXZ2/WYdfp5RfOs81UuhcRsRGd7sTZsbwrY+yW",
+        "reveal": "Lsw/pAlnx4hZiKVH4asTkhZWJjqcQJssM/wvQq1Cjh6CWD84",
+        "hint": "GmJfUyOFt/vecWYSH63j8njDbzOhpMW6H230p/Xq3H4GTvB4wz8FE9AkRiVO3DlshDDIG7g="
       },
       {
-        "hash": "e2c5e3a3f7666d8c3b083a68ac8e26eb1dac95e55ca6cbba348ea341e4e81aad",
-        "sealed": "tVBl2Xl5rBxiutS+QqD+1kTJd8j6tQCKhjNuBCnAOcAi0JlfzhM=",
-        "reveal": "7FdGklKeejPAQ/dAbDtlSBVkBgLMUII5tmPmRTnth9t4mb5A6e4=",
-        "hint": "UEygrR2gikvMsII1hS41jarKYRpMkhBj/XgfcpalShaYzSaYYuGq5Pt1ybIf5tdJ4NMPjTuxXkUjL5K+P+4emTAsGPFLQw5N+bMGkyesP4NuB9L+1Vw5Wfxn5KV9IVsTU80kmE7LkKt/ZrmZhrhXCScfPLkRV3FLfjjeVES8lXxze8Dw08MpzNTRkrHnPTzvWApoZ1eYynVmmKFJzQ4unPY="
+        "hash": "8fafa7d050a4c3b95d4b77c5fb00bf98fb87d7a7afa81106d70d0f45122fc38a",
+        "sealed": "i91Zmsa8DJu0MBTIXoANybATxD/T4jH9l1AMXY4QieezWt13wHQ=",
+        "reveal": "EJ8hnnsZN3hZ4X4LTdXTLpRmRGPSl6pmpB1Rod+rMBOXDqgbxaE=",
+        "hint": "qNZoQ5iGaE7K11teJ6rAgmG0mwE9Eaxhz8T3L+cHmqrYpalJgnwp8cObgvtDseIQg2emKetmjeGfHnDRq1ddqprnkSKkPZdRd9mRd8ZSS2XiJu+a9rTmb3beodS7+sJamQsh"
       },
       {
-        "hash": "dde5d3c31d0ac1ede633e678bd65cb0452ef05932c9161b575acca12357210d5",
-        "sealed": "o3yyfEsndyfsY1SURo7Dc+jvVvbrfI6L7b3xdcF6FtFl0X2LByobD3wg1rtNjw==",
-        "reveal": "mtsTd4FHHkc/Xityh7sLer49XCMGqFwyl3wasvnp4mgC0J9eRgncrSir/HOQWg==",
-        "hint": "25m6hy9SZsVXO9BP0hHeUtZBKeABHziiP/hY4uLK+9Z3cxDriQ3wlkqpG/mwbNX9C1QbIeqd9uRVzN/AzcR9dWGY03DrA0AHaK+EOqL3zfRZ53KJCL6OuOpIdhaTRMdnoUj2tbrN7T1WFlrWwawTOdoaj0D/rBr4DJw6ByI5V5yh21Z+IuO1sYE="
+        "hash": "d227be52cd059f0e945baf2773a6869e3e60f811491140c4852ac3d5b9a42be5",
+        "sealed": "yjpnc344q14BeQCSioDKEogIdUU9+WkIwT6N+zLWy3ZCd/GQByyLkrre",
+        "reveal": "v6w3zYFh0mPvWMPmbX9Bk3jphl2swEWGMkBl/EjtDMKXDvvN1sC10CSs",
+        "hint": "j47V+RxPZYOK5Gv+upjUryXcDUX5vl2z9w5wWvJ55e8iOdiWiE9X513GmUB/rVns35Vmhkq1uqMCUjhHiMfEn+X5hSa7sWbh25oEpq8+l+IANX3rBqdDE2kyhn7+2BtdiOpp/dk61w=="
       },
       {
-        "hash": "7b6ef9de1d49cfd1d16f5ea7c0c3c1b96222edd34ed7c8cda9ef872412185205",
-        "sealed": "iG5rtIEGqcRllBIhNnGoPr5wfNVCO1NOVQDTNbAaKa2+K68jpIlsfPibjFq4Aw==",
-        "reveal": "Q4P+TurxZbyTg+gIbwfUqAsh3lZlW1yoksX8nL55cPAHR0SunowldD+sZ7arHA==",
-        "hint": "Hge9DDxDiFoUtdCRdFZhtFkmKZXOp8BzqbxAa2RL5Z7zAGzu8U0aP8CkmCOnL/ZfhV3yo9b53RbvXWy19/gDHtzuHn77rE1tzvaBDd5h6sSBqa50DHkkolLikeBEbGARBELGfD4XNTMJixWZnlFT8XX1fQ6qXxzCnTECiFdanA4y4kfs5sPVUt51bcE1cWRQ4V3VR4SgbRrhLjdCEiyxvovM16fANvEb"
+        "hash": "43837d64a461d4f9cbb84e62441cea58f14843d9b000e827e7533c629b27659c",
+        "sealed": "KzTC2U3Wz8dqTqOaE8afAVQOqKnz7HdMujrzgD6tlyrdNKGGTXb3NQ==",
+        "reveal": "+dxComFn3cKbYHO7MSInhXYd5feYEPc2eHAggjZMrAl6p6LX79wrqA==",
+        "hint": "WXRZ2x07hHUrAgZ1neFIZthm1CMY3loTE1ll4vA2uJa+pW+CnA33fF89KOEe5rSRl8dys0J/bZDwmgyUom814OE9P9QicKEY1J90N5Mpjzsb7I6dQdEvJzo2VfnSrL3HjfJ1LfiH+Ts/"
       },
       {
-        "hash": "54e5e6dac2f13941afe6babe07da0baea9f19d6417350b14ffe01db95a6bf177",
-        "sealed": "dvfVLsjIwpduiEIhkXe4NnN6hV+STLNkkQvJUomjggy/POJ/",
-        "reveal": "n+bf1XyODJtzbTGZnE8kAALczypazNQnRDK1Y7KAoz0GCIxW",
-        "hint": "osUCr8YsP8UHvJ2s5K3zX4Y9ptAEjMSKRCE6JmXC7V+lJBxtGkpjcYvIBRmZpT0tYB1v0Qe5Vi3bLDHgftJHuHKP2PYxMBxfUiqMDC/o1mlU0mloO8/SPvyA9a3LHfV1C//2FNbPOYzeWnqhYWEWIMGmT8Tkh21r5H1uLRZhj8LdZXSdFFrz9ydL6S2AocrvLMBeutby1BGjAm0AFjNm"
+        "hash": "cc57df792e394005ea5edfc42d6c65fa3088b596092510c7e641d6e2b30ca6c1",
+        "sealed": "NYFaMVNih4XNu4DUnSqKEkKlOsLWx86VGg1yflCqdFIjOPAiG2o=",
+        "reveal": "YR5xzc62/IcGnx+8laq3nCImLyzxoZXKdE7VN3LmBmE0fY7Io28=",
+        "hint": "dPIc3k2mGlyaawERf/+Z907WULYsiySL2hHj04zb4z5Uqm22TO/QPNV5IjfZwvaQP3BKK6R4G/kUp0xb/7Z2jy8Zm/hm1N8KIgQUKwk="
       },
       {
-        "hash": "d1ae1959eadab7424088f33f6f63db03c7260245318e3792d99b37dd3707e834",
-        "sealed": "TfhEGmCTJINBbyJUJ2Qu6pr7MgbA3bgAPmNTUnwklnR+MHPjNxc=",
-        "reveal": "jQfoJ8GRyKOjU5UPK8F4E3LCHGGouqiKebmsl1r1uoVek8V288s=",
-        "hint": "/uZiu2l1HN8zxKB2+l/4Gazatie1lcatK+jyHore/uqvNzntfHGAUC22S4+Ov/gtLX3XnpJ47JuVaZ08M3HO6fFvtxfKMtN0Y0/4+tKzA+XuDQ774w9ytWmPhrxeCpZs7SWyYRaVcfYDR8yXi7DpbIYu8PILOl0z0t0Agwcw8S53KhSSV9OKC+9SlBR4osvmFZQta7vI08bhGUrUSZhLPUQZ6TXc8WwT"
+        "hash": "d3135c51f56ddf0a62893373778401c5ed01f3ab2bfb993b136b2e76a36a71ac",
+        "sealed": "Iiq55MUaBgZPRGFIW0nq+8PfmM+i2tgq6vwPHPkzDEnv6w==",
+        "reveal": "DlJ7pvFz8c7zkKfZqDv7tHjQIYbJfccJSxZcJ2eOVz9iWw==",
+        "hint": "iffRt2oG2pqMXnr2nB720OMn6TBLvh+ygeFi5TtRf+hSfNAHfX0ivHW5qSMdYchKvR5/KdTKQ0PiponXkAYMh2d3m232U38/aPiEz894f27k"
       },
       {
-        "hash": "72975d17bb26ae92c26b789a50a6c14f8563e45bb7afb44360c9bf3a1a56d6fc",
-        "sealed": "wX3NGitxKz3UOwidXsXUcg+k1HLmXWUzM+MITUAqk74Tyk+ZDzHSRXl8AcUhbQ==",
-        "reveal": "lazGVaqAWefKyRcwf8zYPXWdk6bfU0raCEXjBiJh35zra7awZ0R5oG74fb2OyA==",
-        "hint": "ZNSsiNX5C7ECbWP2XONUU+uqcn9G23KCW+FrTLpfHYhRFbzWYcnyGPACvoLlXANwn6Vmu4BoNjrSv3mib9k8VC1JHk5PSHjmlkEV7C73jMDx7v/W8vgyGrmqWfXgI9RF2kXNCFJ/AvSw18dSPg72/Su51nftUEIEk0KVSPSnmSx8"
+        "hash": "a9d0579fc857531a68cf02101cbc0349766a99e6fb4753d22fe1d1d3281dfad0",
+        "sealed": "2C0zanUf65uBJ56A+d24eT23p30lrUTWbrCEnQQXUXxPvXPu",
+        "reveal": "IHp+CWdKQrA9zvMNNdcoCaNWppCl3KHaTr4X0oibPvl7pckP",
+        "hint": "1kXnGslQsa1beQXyiMNwFwjDm16IKYqWF1iRbkMdA9QIOdkpVgPpq62JDSiVpnSdPujQfcvFx31oyBmcVUlbulM9CiR5cTzVKkMCUQ=="
       },
       {
-        "hash": "06ba2110f54d1988f1dff6a41c57195acc81a7cfc05f2e71abedd9342b9bfc33",
-        "sealed": "qoinUMdio34BJ7A6g5j1iZI4BDy6/Q3MlcuegV3m08m6xrh6X9urA+Sv",
-        "reveal": "LQRqtwnx3wpJFimHOSqew6qdMFgNgHVX/OlEQIvaJiSwQzPY0Mvn6Gci",
-        "hint": "IetDwjsWIULz7hFfspSlZeq8BIV2pu8U4EAxFdn9s7t0DxhmZRoP9N9jSNXr/MMAsIYH4iDtpi66op8ExKziHW4Uf5zHt1HPQ3aL+hnWDQVpxA1IHTZbD3SMxybTa5NaBzNl8ui5PQIGg1lAGpYVwUNplvH33sug9o1Tpw6kmF8/kmp5cLcc6rLvR+gwUmGOr6VqS4ptR3KD9w=="
+        "hash": "f7e5e16cd33bd0aca6bf18980918707cad9f620b0ac873c0fea91f7f57f0cff0",
+        "sealed": "HZp+dZr/LlKlpowye6bdBNQH3S/5QywMTLV/vJ3Y7Iy2Sw==",
+        "reveal": "7N/JuYC39maqHrVwRXbpiU7KzumTtGIymKc+EqW4lptMrg==",
+        "hint": "4RDa+M5EQOlOtvGMwVdc3mVHt59NIFuqRxP94XjhXOIkXD7LZiutALl3BzROZngiJofLmXadEdGfJnyIkbM7Ps3EdoIbA4mEw8xN2xp4hEBRUZa1od0X"
       },
       {
-        "hash": "64fbda55e7df01842ddfb12742878ff558fa00204c350a83496c77ac9217ad06",
-        "sealed": "Xfl9UXfSG/k6p9sj685MiD9vxgA3feUO6LtynUg1JF/uwK6C0uY=",
-        "reveal": "tK9soItlKL8WW4k70vUmLBAxdZjxGHgSR4QM/w9076Z3uJlDgJ0=",
-        "hint": "uvFx3JR5EVt9rgk0c7XBHGKvCHgoC5Ea1aSuMKdMDAnYo6CwgbA8q4ZUA+HWONhwLOxj40xVfAhcs2U+gksSz1fsq9E4YAJZLIyjpHHtUPIDzdE1LL0U1jaDRbD7fq+ysnE8pFJgeL/r42KCcIuQn8dNJ8chghq2lok65DJTOQ6xAYzq5ro="
+        "hash": "578a34783b171238374da7b05d0a8dbd4d03758e242d6c2ff67660aefbb16744",
+        "sealed": "G15W3BMoy0H832/8tMA01BKxM0X2HEj8trO2gk9ycZuQ3Q==",
+        "reveal": "UUiyFj9FXqaExt3R+nDGDn728o3zf0ZA1u3M51G+XWU3nA==",
+        "hint": "MDHYJctA9jSvX1UEEtq0OdtxPkw4OebZboLbImmzu3nOJpmzoJ2W9KU52F8UT/3O5wbI4Y3QUL5BnPbDG3DKCIPZcgXbTg=="
       },
       {
-        "hash": "2a0e3dd093b22e4a5935127232a14ac8029203a12560935753bc42a76e919d39",
-        "sealed": "FdLa8JSzXaYeX/VlKTligqzN3QeQmHVsAwUjoGsI9qEM4RY1/FzScdG4",
-        "reveal": "S/QA4zMR9BLoCP8My6pVMM8DylvP9/ytj9Xg/MkvMNs9C6ILMk/dYYhO",
-        "hint": "uZBOY0MUxKHSBmunz+myDb3Dnc3ZmM8qBozkAwHRLnXwX40ugj6x3Iy8r6okzGQVH6j2J+Mkh671OvF/eNnOMyQUsehUwEkm2+M0x94hm+dW07tVj40RDwfcxBPae72ImQJBQLkwFEaVLlnDzkFCdz6g4RFfpbDYOKIZtaf/MlxxRoHk+w41c5VEORCyBRR+ZcYY82fdnpFg/iYtP64AJWc="
+        "hash": "6f14af49a4c0118c3678f7e7e9c8a3a77d9ff3695469e572de895abc4fdda6a8",
+        "sealed": "nVfsWZIdmqNUBHEFHuUFSNYSor2h1DuRDCEql14SseWsBkIvyKJx8w==",
+        "reveal": "HYu7DTC39jv5XKxomTmcEq/z/0tccie+w10RYpc4jqOmN96aBOeSxw==",
+        "hint": "vQIpu2b006YFNbMdKOtRliiJb/pwquYYATHqa/shkoHq03/ePynztvKdwTIUHfUhd7bvZYhh2q8kiEC3vDBffCPgrNVMuaPL/NA7oie4ppTbsoPAtJtUrg=="
       },
       {
-        "hash": "881eceef14b4e6dfc6a7ffc809daadb4dfb8138bbaf3cee6e4b4041593ea8f50",
-        "sealed": "ofv7FmY7vcjbyGtOErD5aH+ymbGivgXRnSbbKHVI7akcWO4JuQB1DpOS",
-        "reveal": "+7JHtl7oLYQ6ifd4+ZFKivc77qIvhRso1ANykZmFThO9GGajFCUtE4MH",
-        "hint": "Pkc1HU8VKKn3QknpO+aM7IXMznX1ozgJknIDfjhTbNQOBoytiZ3qqOptfKzTvzF4cDWehHVbvCkIHg96LDREfPF3lDws/rFDbs6cjzQogHmGlDLGko+cBmwioRdIxZT+ZpX4ISLpPoH2iexas6sl8DC9ts5eSFPpPfe/J2el379UKs5XzHcr+LR1x8s="
+        "hash": "fd20dbe4471d713bc0989a150674cff6acc9715c4da23fb0abd307045512b06c",
+        "sealed": "tYP0Q+nTBGW1FNbBxhWm5jYfOO2CuSWEhm8qGr3MXTI=",
+        "reveal": "HXtl1W51U9FkS3TXid3rT4+P+NUGahQyXKVU2yCMXV4=",
+        "hint": "fFzv6I+u4G3mR99rH88ds2aSc5GbIr6dapywEmwG2b0NxRKHM5lcu5vUK3msGV0RVcLiQkLN1YO9T1jXBvYHkxlHzVhiwOPBLuAP7YPh3aXz64p8NJVLxwIs"
+      },
+      {
+        "hash": "849b01465d3e84cc5038e4820030324a883ffd8f81056845577d139bbfe472d3",
+        "sealed": "dS/CDEsLpFMWvLK2uv72FHbWJy2NPHgKxhSpHp5DdBttuA==",
+        "reveal": "M+unKc7nl3RbFfFK0XFdkvJ9WuuCtpCIPsj8WIqTGAQSKg==",
+        "hint": "pVc4zx/9Pdwm7a0FoYIsfOvx427IbqsqN3h41FYqCKFYQdxlitcLcu1L4eWTAYvdiOnzRP5wXjoG"
+      },
+      {
+        "hash": "5188f5f8ed93c4a926ef5c8dada2257a8a79ea65b2a0ddfc6dcd066d87b08435",
+        "sealed": "sp9+WcWYiYObO7Ean/bFrwPvnspKt/l/RCvaRqX4j9qsUZBAbN0Fbw==",
+        "reveal": "gVRVqcVRCQojtIAFlqMxTCGRHXiSH0v6EbFmrV5pBD+ltRRonVo2mQ==",
+        "hint": "c9/hETdJGPHV3Y3oaAxZditOYGAcn109C04oRoo180lX930M2whZ5+j0oSRfyaD4VZ2x1huqnpW5rXl+o1195LFPMOf1EJ02v/piRgr5X+QAIwfIhJo="
+      },
+      {
+        "hash": "02694f0a24692bc402d35e720bad56d9a94152757fb372a29d73e1f7b5d3be94",
+        "sealed": "JePwTcFTwEOR1NKoIbZu6XwW6IE5v8A5CZ6hAXhtf8RytWv2Bpo=",
+        "reveal": "dJH1fPBkmZm6Tp+0Elk/ee3oz+CYOwrsjYv8PSPtdlCkC5oL0p0=",
+        "hint": "syffe3Ta5HRHFTkSmW3rCTJCpg3TLIPfYeoPAkO10K5L9Xygnk9kuyLcPNjXGkLbGK2Z6/Y4yo/0WecoGcyVBAjfAtQa5lke"
+      },
+      {
+        "hash": "df3e2325d33b7978d68c07c47fdfc3bf64befd9de94d132095503d8a33982f81",
+        "sealed": "22GYAyDOvH5iSvSVz2LrOXW4HmNkSz4Bq5DK9G05hJttG8lv",
+        "reveal": "pNUGNY06qMm12jq1SN3JwFyeOKkO21fmayQtAjI6mCz3zuy1",
+        "hint": "nAn5Q07eLCVJJ2cZ1rly1x8eWnLy8gbVog9Q+mQOxjkN54FL1e1bJv7tGohi9VbC78roNmxIjED0CEfukweR2m9E8XmnKfuBAjxuXMg="
+      },
+      {
+        "hash": "83073c4fa895695d31f7d002913d9fb4e4251ed7698de4551613e72d187ff601",
+        "sealed": "1EZDOrGg+T7BR6Cv69MwIZua2r9MZKL6kbmmooBTKKXi4fzXf2EzmA==",
+        "reveal": "c14CcPRgZk/0DHvaSVuM9rrOhopX3wLZmpMm4ZqIXlY3srWVuslVBA==",
+        "hint": "Pf1TwFBzk4Mj0HUOunFXbeE6xM8MKXI27cGxWxXtCiR/cxPClC9G+gfe+LV78b/45pUbxClN6bcVDkU4Zg3gMzhdzbtydFTmkO83QHE="
       }
     ]
   },

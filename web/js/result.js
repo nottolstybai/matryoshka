@@ -14,3 +14,19 @@ export function formatTime(ms) {
   const s = Math.floor(ms / 1000);
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
+
+// Текст для «Поделиться»: без спойлеров — только дата, оценка и цифры.
+//   date — подпись дня («3 октября»); time — мс или 0, если неизвестно; streak — серия (0, если не показывать);
+//   url — ссылка на этот день. Нулевые показатели не перечисляются.
+export function shareText({ date, result, time, streak, url }) {
+  const details = [];
+  if (time > 0) details.push(formatTime(time));
+  if (result.errors) details.push(`ошибок: ${result.errors}`);
+  const help = result.hints + result.letters;
+  if (help) details.push(`подсказок: ${help}`);
+  if (result.reveals) details.push(`открыто слов: ${result.reveals}`);
+  const lines = [`Матрёшка · ${date}`, [verdict(result), ...details].join(' · ')];
+  if (streak >= 2) lines.push(`Серия: ${streak} дн.`);
+  lines.push(url);
+  return lines.join('\n');
+}

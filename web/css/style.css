@@ -420,7 +420,9 @@ h1 {
 .result div { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; }
 .result dt { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; color: var(--muted); white-space: nowrap; }
 .result dd { margin: 2px 0 0; font: 600 1.25rem/1.15 var(--serif); font-variant-numeric: tabular-nums; }
+.finale-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .finale-text { margin: 0; color: var(--ink-2); font-size: 0.9rem; }
+.finale-foot .pill.primary { flex: none; padding: 9px 20px; font-size: 0.95rem; }
 
 .sparks { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 50; }
 .spark {

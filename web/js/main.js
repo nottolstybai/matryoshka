@@ -7,7 +7,7 @@ import { loadProgress, saveProgress, dayEntry, dayStatus, stats } from './progre
 import { renderCalendar } from './calendar.js';
 import { setupHowto } from './howto.js';
 import { setupThemeToggle } from './theme.js';
-import { verdict, formatTime } from './result.js';
+import { verdict, formatTime, shareText } from './result.js';
 
 const $ = (sel) => document.querySelector(sel);
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -16,11 +16,12 @@ const autofocus = () => matchMedia('(pointer: fine)').matches;
 
 // Общее на всю страницу: пул, даты, прогресс. Заполняется один раз в main().
 const ctx = { puzzles: [], today: '', first: '', progress: { days: {} }, store: null };
-// Открытый день: { date, puzzle, game, sel, hints, errors, elapsed, since }.
+// Открытый день: { date, puzzle, game, sel, hints, errors, elapsed, since, share }.
 //   sel     — id ребуса, выбранного кликом, или null;
 //   hints   — взятые подсказки: { id: { hint: текст, letter: буква, reveal: true } };
 //   errors  — число неверных ответов (null у дней, решённых до появления счётчика);
-//   elapsed — время решения в мс без текущего отрезка; since — начало текущего отрезка или null (пауза).
+//   elapsed — время решения в мс без текущего отрезка; since — начало текущего отрезка или null (пауза);
+//   share   — текст для «Поделиться», появляется, когда день собран.
 // При переключении дня объект заменяется целиком; всё асинхронное сверяет,
 // что его день ещё открыт, — иначе результат не применяется.
 let day = null;
@@ -264,6 +265,14 @@ function finish(d, animated) {
   $('#finale-text').textContent = d.date === ctx.today
     ? `Решено фактов: ${s.total} · серия: ${s.streak}. Завтра будет новый факт.`
     : `Решено фактов: ${s.total}.`;
+  // Текст для «Поделиться»: ссылка ведёт на этот же день, серия — только у сегодняшнего.
+  d.share = shareText({
+    date: parseDate(d.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }),
+    result,
+    time: d.elapsed,
+    streak: d.date === ctx.today ? s.streak : 0,
+    url: `${location.origin}${location.pathname}?date=${d.date}`,
+  });
 
   const board = $('#board');
   const show = () => {
@@ -397,6 +406,32 @@ async function check(d, value) {
   solved(d, id, `Верно — «${game.answers[id]}»!`, 'ok');
 }
 
+// «Поделиться»: на телефоне — системное меню, на компьютере — копирование в буфер.
+async function share(button) {
+  const text = day?.share;
+  if (!text) return;
+  const flash = (label) => {
+    button.textContent = label;
+    setTimeout(() => {
+      button.textContent = 'Поделиться';
+    }, 2000);
+  };
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+    try {
+      await navigator.share({ text });
+    } catch (err) {
+      if (err.name !== 'AbortError') flash('Не получилось'); // AbortError — игрок сам закрыл меню
+    }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    flash('Скопировано');
+  } catch {
+    flash('Не получилось');
+  }
+}
+
 // Обработчики вешаются один раз; они работают с текущим днём через `day`.
 function setupPage() {
   // Отправки ответов и подсказки идут строго по очереди: всё это асинхронное.
@@ -433,6 +468,8 @@ function setupPage() {
     e.preventDefault();
     pick(e.target);
   });
+
+  $('#share').addEventListener('click', (e) => share(e.currentTarget));
 
   for (const kind of ['hint', 'letter', 'reveal']) {
     $(`#tool-${kind}`).addEventListener('click', () => enqueue(() => useHint(kind)));

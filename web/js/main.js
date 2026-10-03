@@ -1,5 +1,6 @@
-import { parse, validate } from './parser.js';
-import { Game, normalize } from './model.js';
+import { parse } from './parser.js';
+import { Game } from './model.js';
+import { answerHash, openAnswer } from './crypto.js';
 import { render, collapse, nudge, reveal, celebrate, shake } from './render.js';
 import { localDate, isDate, parseDate, pickPuzzle } from './daily.js';
 import { loadProgress, saveProgress, dayEntry, dayStatus, stats } from './progress.js';
@@ -70,11 +71,14 @@ function showProgress(game) {
 
 function start(puzzle, date, today, progress, redrawCalendar, store) {
   const tree = parse(puzzle.puzzle_text);
-  const errors = validate(puzzle, tree);
-  if (errors.length) throw new Error(`Головоломка битая:\n${errors.join('\n')}`);
+  if (tree.nodes.length !== puzzle.nodes.length) throw new Error('Головоломка битая: число ребусов не совпадает с ответами');
 
-  const game = new Game(tree, puzzle.nodes);
-  game.restore(dayEntry(progress, date, puzzle.fact)?.solved ?? []);
+  const game = new Game(tree, puzzle.nodes.map((n) => n.hash));
+  // Восстанавливаем только узлы, для которых сохранено слово: без него нечего показать.
+  const entry = dayEntry(progress, date, puzzle.id);
+  const saved = entry?.answers ?? {};
+  game.restore((entry?.solved ?? []).filter((id) => typeof saved[id] === 'string'));
+  for (const id of game.solved) game.answers[id] = saved[id];
 
   const board = $('#board');
   const input = $('#guess');
@@ -87,10 +91,11 @@ function start(puzzle, date, today, progress, redrawCalendar, store) {
   $('#to-today').hidden = isToday;
 
   const save = () => {
-    const prev = dayEntry(progress, date, puzzle.fact);
+    const prev = dayEntry(progress, date, puzzle.id);
     progress.days[date] = {
-      fact: puzzle.fact,
+      id: puzzle.id,
       solved: [...game.solved],
+      answers: Object.fromEntries([...game.solved].map((id) => [id, game.answers[id]])),
       done: game.done,
       onTime: prev?.onTime || (game.done && localDate() === date),
     };
@@ -130,32 +135,33 @@ function start(puzzle, date, today, progress, redrawCalendar, store) {
     input.focus({ preventScroll: true });
   }
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
+  // Проверка ввода асинхронная (хеш и расшифровка), поэтому отправки идут строго по очереди.
+  const check = async (value) => {
     if (game.done) return;
-    const value = input.value.trim();
-    if (!value) {
-      setStatus('Введите слово в начальной форме — ответ на подсвеченный ребус.', 'hint');
-      input.focus();
-      return;
-    }
-    const id = game.guess(value);
+    const key = await answerHash(puzzle.id, value);
+    const id = game.guess(key);
     if (id === null) {
-      const locked = game.lockedAnswerId(value);
+      const locked = game.lockedAnswerId(key);
       if (locked !== null) {
         setStatus('Слово верное, но этот ребус ещё закрыт — сначала разгадайте вложенный.', 'hint');
         nudge(board, game.blockers(locked));
-      } else if ([...game.solved].some((s) => normalize(game.answers[s]) === normalize(value))) {
+      } else if (game.isSolvedKey(key)) {
         setStatus('Это слово уже разгадано.', 'hint');
       } else {
         setStatus('Не подходит. Попробуйте другое слово.', 'bad');
         shake(input);
       }
-      input.select();
+      if (input.value.trim() === value) input.select();
       return;
     }
 
-    input.value = '';
+    try {
+      game.answers[id] = await openAnswer(puzzle.id, value, puzzle.nodes[id].sealed);
+    } catch (err) {
+      game.solved.delete(id); // хеш сошёлся, а шифр нет — данные битые, не засчитываем
+      throw err;
+    }
+    if (input.value.trim() === value) input.value = '';
     const before = dayStatus(progress, date);
     save();
     if (dayStatus(progress, date) !== before) redrawCalendar();
@@ -166,11 +172,31 @@ function start(puzzle, date, today, progress, redrawCalendar, store) {
     collapse(board, game, id).then(() => {
       if (last) finish(true);
     });
+  };
+
+  let queue = Promise.resolve();
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (game.done) return;
+    const value = input.value.trim();
+    if (!value) {
+      setStatus('Введите слово в начальной форме — ответ на подсвеченный ребус.', 'hint');
+      input.focus();
+      return;
+    }
+    queue = queue
+      .then(() => check(value))
+      .catch((err) => {
+        console.error(err);
+        setStatus('Не получилось проверить ответ. Обновите страницу.', 'bad');
+      });
   });
 }
 
 async function main() {
   try {
+    // crypto.subtle есть только в защищённом контексте: https или localhost.
+    if (!globalThis.crypto?.subtle) throw new Error('Игра работает только по https или на localhost.');
     const puzzles = await loadPuzzles();
     if (!puzzles.length) throw new Error('В puzzles.json нет головоломок');
     const today = localDate();

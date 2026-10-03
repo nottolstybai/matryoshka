@@ -28,6 +28,8 @@ jobs:
         with:
           node-version: 22
       - run: make check test
+      # Метка версии на JS/CSS, чтобы после выкладки браузер не смешал новые модули со старыми из кеша.
+      - run: node tools/stamp.mjs "${GITHUB_SHA::8}"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

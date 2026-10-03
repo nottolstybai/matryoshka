@@ -3,3 +3,6 @@
 .netlify/
 node_modules/
 .idea/
+
+# открытые головоломки с ответами — только локально
+puzzles/

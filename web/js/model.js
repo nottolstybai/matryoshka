@@ -12,11 +12,13 @@ export function normalize(s) {
 }
 
 export class Game {
-  // nodes — массив из puzzles.json. answer — слово в начальной форме;
-  // окончания и приставки стоят в тексте вплотную к скобкам и приклеиваются к ответу.
-  constructor(tree, nodes) {
+  // keys[i] — ключ ответа узла i: в игре это SHA-256 хеш (crypto.js), в тестах — просто normalize(ответ).
+  // Ввод сравнивается по такому же ключу, поэтому модель не знает самих ответов.
+  // answers[i] — слово для показа; заполняется снаружи, когда узел разгадан.
+  constructor(tree, keys) {
     this.tree = tree;
-    this.answers = nodes.map((n) => n.answer);
+    this.keys = keys;
+    this.answers = [];
     this.solved = new Set();
   }
 
@@ -37,31 +39,35 @@ export class Game {
     return this.tree.nodes.filter((n) => this.isActive(n.id)).map((n) => n.id);
   }
 
+  // Ключ уже разгаданного узла (ввели слово повторно).
+  isSolvedKey(key) {
+    return [...this.solved].some((id) => this.#matches(id, key));
+  }
+
   get done() {
     return this.solved.size === this.tree.nodes.length;
   }
 
-  #matches(id, input) {
-    return normalize(this.answers[id]) === normalize(input);
+  #matches(id, key) {
+    return this.keys[id] === key;
   }
 
-  // Сверяет ввод со всеми доступными узлами. Возвращает id разгаданного узла или null.
-  // На этапе 4 сравнение заменится на SHA-256.
-  guess(input) {
-    const id = this.activeIds().find((i) => this.#matches(i, input));
+  // Сверяет ключ ввода со всеми доступными узлами. Возвращает id разгаданного узла или null.
+  guess(key) {
+    const id = this.activeIds().find((i) => this.#matches(i, key));
     if (id === undefined) return null;
     this.solved.add(id);
     return id;
   }
 
-  // Ввод подходит к ребусу, который ещё закрыт вложенными.
-  isLockedAnswer(input) {
-    return this.lockedAnswerId(input) !== null;
+  // Ключ ввода подходит к ребусу, который ещё закрыт вложенными.
+  isLockedAnswer(key) {
+    return this.lockedAnswerId(key) !== null;
   }
 
-  // id закрытого ребуса, к которому подходит ввод, или null.
-  lockedAnswerId(input) {
-    const n = this.tree.nodes.find((n) => !this.isSolved(n.id) && !this.isActive(n.id) && this.#matches(n.id, input));
+  // id закрытого ребуса, к которому подходит ключ ввода, или null.
+  lockedAnswerId(key) {
+    const n = this.tree.nodes.find((n) => !this.isSolved(n.id) && !this.isActive(n.id) && this.#matches(n.id, key));
     return n ? n.id : null;
   }
 

@@ -1,52 +1,97 @@
 [
   {
     "date": "2026-10-01",
-    "fact": "Мёд не портится тысячи лет.",
+    "id": "OhA/sswGtT44iiU1SQaAoA==",
     "puzzle_text": "{сладкое, что делает {жужжит и летает над цветами}} не портится тысячи лет.",
     "nodes": [
-      { "answer": "Мёд", "clue": "сладкое, что делает {жужжит и летает над цветами}", "depth": 1, "parent": null },
-      { "answer": "пчела", "clue": "жужжит и летает над цветами", "depth": 2, "parent": 0 }
+      {
+        "hash": "ff0d8544186fde4504e54e9bb4b9346f98a7d3c19b1ed472368e7e8d7b7f718c",
+        "sealed": "K6VVKmzSky6anzOOL4rrZMM4rtBff1iOp/Fuh9XXfPzrrg=="
+      },
+      {
+        "hash": "1dc6f92e18ae7a3705df4b36ec9caec84dff57bcffaaec01cda0e12ca604624c",
+        "sealed": "qkTfgLDQBhFDT1ulkW9nWeyfbfoiSQR6ucCaMmZQHaUo00Jmzts="
+      }
     ]
   },
   {
     "date": "2026-10-02",
-    "fact": "Осьминог имеет три сердца и голубую кровь.",
-    "puzzle_text": "{восьминогий житель {огромный солёный водоём, больше моря}а} имеет три сердца и голубую {жидкость, что течёт в {трубка внутри тела, как вена}ах}.",
+    "id": "Tg6uehLcz4c42JPckYI7QA==",
+    "puzzle_text": "{житель {огромный солёный водоём, больше моря}а с восемью щупальцами} имеет три сердца и голубую {жидкость, что течёт в {трубка внутри тела, как вена}ах}.",
     "nodes": [
-      { "answer": "Осьминог", "clue": "восьминогий житель {огромный солёный водоём, больше моря}а", "depth": 1, "parent": null },
-      { "answer": "океан", "clue": "огромный солёный водоём, больше моря", "depth": 2, "parent": 0 },
-      { "answer": "кровь", "clue": "жидкость, что течёт в {трубка внутри тела, как вена}ах", "depth": 1, "parent": null },
-      { "answer": "сосуд", "clue": "трубка внутри тела, как вена", "depth": 2, "parent": 2 }
+      {
+        "hash": "e1526996d78e634cbff2046fd79429227902387a1984322714ef923a595b4228",
+        "sealed": "SBt/vIy4qbXKnHTuLBNbd8ZDd6F35QhyW4Ab3xYeWFPUQ0PagSLvQXYiBhg="
+      },
+      {
+        "hash": "79c49b28387cb757d42698c4fbd580ef961c58e0570bded8731a0368abac3ecd",
+        "sealed": "gSO7e+acDIpaTRvr11R37gPeiX2U9Wglh9VQGUTbfz6OgCgL3HU="
+      },
+      {
+        "hash": "4c0c2ff3858a5c280b736bde41d96aa435e07b2e892dc989ed3128d756409517",
+        "sealed": "0Sjej+QOAGG+rDyEWVW1mEtHpe/mGoQ6pQ6LU3fcg53aThkAlXs="
+      },
+      {
+        "hash": "fd6924a93f6a508dc32154aba7c61899128d935259a5c4a43bc2da6c88e23e68",
+        "sealed": "CRsE92WcuAx7zYpIv2pHIYupMSMUpXebfB4MNfn0GiRoq60X5Hc="
+      }
     ]
   },
   {
     "date": "2026-10-03",
-    "fact": "Медоносная пчела умеет узнавать человеческое лицо.",
+    "id": "K67t8Jo+NAj3gueGaeorPg==",
     "puzzle_text": "Медоносная {та, что собирает сладкое на {поле с травой, где пасут коров}у} умеет узнавать человеческое {передняя часть головы, её узнают по {им смотрят, их два на лице}ам}.",
     "nodes": [
-      { "answer": "пчела", "clue": "та, что собирает сладкое на {поле с травой, где пасут коров}у", "depth": 1, "parent": null },
-      { "answer": "луг", "clue": "поле с травой, где пасут коров", "depth": 2, "parent": 0 },
-      { "answer": "лицо", "clue": "передняя часть головы, её узнают по {им смотрят, их два на лице}ам", "depth": 1, "parent": null },
-      { "answer": "глаз", "clue": "им смотрят, их два на лице", "depth": 2, "parent": 2 }
+      {
+        "hash": "2dc4d32360f85c19715bbfb441b0ae017a7359ef3616264e8b403b749b77eba9",
+        "sealed": "tbIZ9vtRTBsxzlTKTPl20jceJmCQbKNuNHBGix2EMEjjdRwn9lg="
+      },
+      {
+        "hash": "52fca01ea1827487f7d7f734b22f204313c26b495913f6f9105cba5e3d4c535d",
+        "sealed": "/64pmDp7n36LBDXQ/Cb2AH4J+BGoygfiq0BvcoR68XeZxg=="
+      },
+      {
+        "hash": "c09e07dfc8073034a51a506929cc5dddd4c6320f7edb0efa9ebde7a2c04a7475",
+        "sealed": "SIDGmHdczJsXJuiLLUiGMjx8np3yBrJbgb9uoaGJya/wonOo"
+      },
+      {
+        "hash": "a0b69187c2e3ecd0b4e1ac272c56264228476eace9ef40f65dd9adc12ec97aa0",
+        "sealed": "wZUkrUSjU/5fZbkgrjdoTL+5ErlpxjwCVjXYDc/B4PHDq22L"
+      }
     ]
   },
   {
     "date": "2026-10-04",
-    "fact": "Летом Эйфелева башня становится выше примерно на 15 сантиметров.",
+    "id": "ooLoQLG8L9fPWuoA5YaLsw==",
     "puzzle_text": "Летом Эйфелева {высокая узкая постройка, как у {здание для молитвы, часто с {круглая крыша, как половина шара}ами}а} становится выше примерно на 15 сантиметров.",
     "nodes": [
-      { "answer": "башня", "clue": "высокая узкая постройка, как у {здание для молитвы, часто с {круглая крыша, как половина шара}ами}а", "depth": 1, "parent": null },
-      { "answer": "храм", "clue": "здание для молитвы, часто с {круглая крыша, как половина шара}ами", "depth": 2, "parent": 0 },
-      { "answer": "купол", "clue": "круглая крыша, как половина шара", "depth": 3, "parent": 1 }
+      {
+        "hash": "49fa7167335c03b1c874174e22465a6fbe603c50f4c94b2fc9976e3c92bd254a",
+        "sealed": "ABtFzA2SYnp98Tuk1bGW4CsEyH78839wKVPXdDcE9eSd6KsdlF0="
+      },
+      {
+        "hash": "74c54ebcb3532dbf8d3545cb58d22c71a6de296e55f41a9ba5ede42e5fe01a91",
+        "sealed": "ji4wYfB8posYMED37ixf1ILM+SEYtfAWW15FaJuFlr+esj8A"
+      },
+      {
+        "hash": "aee5889d38a173963f67edf450890d9e7486dbc268e45cba187d78b4acef54d2",
+        "sealed": "xErYoAK9sNf7BfZKoAcKm0h4BBLjRcbitvPpf2cGcTtphTLLMxg="
+      }
     ]
   },
   {
     "date": "2026-10-05",
-    "fact": "Банан — это ягода, а клубника — нет.",
+    "id": "AiV9ZG5Cw94i45Hj/75xmQ==",
     "puzzle_text": "{жёлтый плод, его любит {животное, что лазает по деревьям и кривляется}} — это ягода, а клубника — нет.",
     "nodes": [
-      { "answer": "Банан", "clue": "жёлтый плод, его любит {животное, что лазает по деревьям и кривляется}", "depth": 1, "parent": null },
-      { "answer": "обезьяна", "clue": "животное, что лазает по деревьям и кривляется", "depth": 2, "parent": 0 }
+      {
+        "hash": "2deca5f0ea4f72666fc5f8da049d31aafe54a7e22be82a38b7686cf37da3d211",
+        "sealed": "Z0phTD380T2MfvIHO+4jdKEtXO1+qgATFFAynMhr+RTaM3y4W9s="
+      },
+      {
+        "hash": "34b5acb20c7ef8efdc897e57bde8153aabb76b7c48eb6790043114e5f4f7658c",
+        "sealed": "Q4wzO/pkG17Rv+qQab5/h3hHLbFr3RPpDYwIWWnrbxwKXa0am9k8ej8/NOs="
+      }
     ]
   }
 ]

@@ -2,10 +2,25 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parse, assemble, validate, ParseError } from '../web/js/parser.js';
 import { Game, normalize } from '../web/js/model.js';
-import { readFileSync } from 'node:fs';
 
-const puzzles = JSON.parse(readFileSync(new URL('../web/data/puzzles.json', import.meta.url), 'utf8'));
-const samplePuzzle = puzzles.find((p) => p.date === '2026-10-03');
+// Выдуманные головоломки: ответы на настоящие дни в репозиторий не попадают.
+const samplePuzzle = {
+  date: '2000-01-01',
+  fact: 'Ёж и кот дружат.',
+  puzzle_text: '{колючий зверь из {растёт много деревьев}а} и {мурлычет и живёт в {здание для жизни}е} дружат.',
+  nodes: [
+    { answer: 'Ёж', clue: 'колючий зверь из {растёт много деревьев}а', depth: 1, parent: null },
+    { answer: 'лес', clue: 'растёт много деревьев', depth: 2, parent: 0 },
+    { answer: 'кот', clue: 'мурлычет и живёт в {здание для жизни}е', depth: 1, parent: null },
+    { answer: 'дом', clue: 'здание для жизни', depth: 2, parent: 2 },
+  ],
+};
+const deepPuzzle = {
+  puzzle_text: 'Старая {a {b {c}}} стоит.',
+  nodes: [{ answer: 'башня' }, { answer: 'храм' }, { answer: 'купол' }],
+};
+// В игре ключ ответа — SHA-256 (crypto.js); модели всё равно, поэтому в тестах ключ — normalize(ответ).
+const keys = (p) => p.nodes.map((n) => normalize(n.answer));
 
 test('parse: дерево вложенности в pre-order', () => {
   const { root, nodes } = parse('A {b {c} d} E {f}');
@@ -36,7 +51,7 @@ test('assemble: ответы складываются в факт и в подс
   const tree = parse(samplePuzzle.puzzle_text);
   const answers = samplePuzzle.nodes.map((n) => n.answer);
   assert.equal(assemble(tree.root, answers), samplePuzzle.fact);
-  assert.equal(assemble(tree.nodes[2], answers), 'передняя часть головы, её узнают по глазам');
+  assert.equal(assemble(tree.nodes[2], answers), 'мурлычет и живёт в доме');
 });
 
 test('assemble: приставки и окончания вокруг скобок клеятся к ответу', () => {
@@ -49,39 +64,41 @@ test('validate: образец корректен, порча ловится', (
   assert.deepEqual(validate(samplePuzzle, tree), []);
 
   const broken = structuredClone(samplePuzzle);
-  broken.nodes[0].answer = 'оса';
+  broken.nodes[0].answer = 'еж';
   broken.nodes[3].parent = 0;
   assert.equal(validate(broken, tree).length, 2); // parent + ответы не складываются в факт
 });
 
 test('Game: решение строго изнутри наружу', () => {
   const tree = parse(samplePuzzle.puzzle_text);
-  const game = new Game(tree, samplePuzzle.nodes);
+  const game = new Game(tree, keys(samplePuzzle));
   assert.deepEqual(game.activeIds(), [1, 3]);
 
-  assert.equal(game.guess('пчела'), null, 'внешний закрыт, пока не решён внутренний');
-  assert.equal(game.guess(' Луг '), 1);
+  assert.equal(game.guess('еж'), null, 'внешний закрыт, пока не решён внутренний');
+  assert.equal(game.guess('лес'), 1);
   assert.deepEqual(game.activeIds(), [0, 3]);
-  assert.equal(game.guess('ПЧЕЛА'), 0, 'регистр не важен');
-  assert.equal(game.guess('глазам'), null, 'засчитывается только начальная форма');
-  assert.equal(game.guess('глаз'), 3);
-  assert.equal(game.guess('лицо'), 2);
+  assert.equal(game.guess('еж'), 0);
+  assert.equal(game.guess('доме'), null, 'засчитывается только начальная форма');
+  assert.equal(game.guess('дом'), 3);
+  assert.equal(game.guess('кот'), 2);
   assert.ok(game.done);
 });
 
 test('Game: подсказывает, что слово верное, но ребус закрыт', () => {
   const tree = parse(samplePuzzle.puzzle_text);
-  const game = new Game(tree, samplePuzzle.nodes);
+  const game = new Game(tree, keys(samplePuzzle));
 
-  assert.equal(game.guess('пчела'), null);
-  assert.ok(game.isLockedAnswer('пчела'));
-  assert.ok(!game.isLockedAnswer('оса'));
-  assert.equal(game.guess('луг.'), 1, 'точка в конце не мешает');
-  assert.ok(!game.isLockedAnswer('пчела'), 'после луга ребус открыт');
+  assert.equal(game.guess('еж'), null);
+  assert.ok(game.isLockedAnswer('еж'));
+  assert.ok(!game.isLockedAnswer('заяц'));
+  assert.equal(game.guess('лес'), 1);
+  assert.ok(!game.isLockedAnswer('еж'), 'после леса ребус открыт');
+  assert.ok(game.isSolvedKey('лес'));
+  assert.ok(!game.isSolvedKey('еж'));
 });
 
 test('Game.restore: восстанавливает прогресс, отбрасывает чужие id', () => {
-  const game = new Game(parse(samplePuzzle.puzzle_text), samplePuzzle.nodes);
+  const game = new Game(parse(samplePuzzle.puzzle_text), keys(samplePuzzle));
   game.restore([1, 3, 99, -1, '0']);
   assert.deepEqual([...game.solved], [1, 3]);
   assert.deepEqual(game.activeIds(), [0, 2]);
@@ -94,8 +111,7 @@ test('normalize', () => {
 });
 
 test('Game: lockedAnswerId и blockers — что подсветить, когда слово верное, но ребус закрыт', () => {
-  const eiffel = puzzles.find((p) => p.date === '2026-10-04');
-  const game = new Game(parse(eiffel.puzzle_text), eiffel.nodes);
+  const game = new Game(parse(deepPuzzle.puzzle_text), keys(deepPuzzle));
   assert.equal(game.lockedAnswerId('башня'), 0);
   assert.equal(game.lockedAnswerId('храм'), 1);
   assert.equal(game.lockedAnswerId('купол'), null, 'купол доступен, не закрыт');

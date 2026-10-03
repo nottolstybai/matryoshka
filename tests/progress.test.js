@@ -8,7 +8,7 @@ const memoryStorage = (init = {}) => {
   return { getItem: (k) => data[k] ?? null, setItem: (k, v) => { data[k] = v; }, data };
 };
 
-const done = (onTime = true) => ({ fact: 'f', solved: [0], done: true, onTime });
+const done = (onTime = true) => ({ id: 'f', solved: [0], done: true, onTime });
 
 test('loadProgress/saveProgress: туда и обратно', () => {
   const storage = memoryStorage();
@@ -28,14 +28,15 @@ test('loadProgress: мусор и недоступное хранилище не
 });
 
 test('dayEntry: запись чужой головоломки не применяется', () => {
-  const p = { days: { '2026-10-03': done() } };
+  const p = { days: { '2026-10-03': done(), '2026-10-02': { fact: 'старый формат', solved: [0], done: true } } };
   assert.ok(dayEntry(p, '2026-10-03', 'f'));
-  assert.equal(dayEntry(p, '2026-10-03', 'другой факт'), null);
+  assert.equal(dayEntry(p, '2026-10-03', 'другой id'), null);
+  assert.equal(dayEntry(p, '2026-10-02', 'f'), null, 'запись до шифрования (без id) не применяется');
   assert.equal(dayEntry(p, '2026-10-04', 'f'), null);
 });
 
 test('dayStatus', () => {
-  const p = { days: { a: done(), b: { fact: 'f', solved: [1], done: false }, c: { fact: 'f', solved: [], done: false } } };
+  const p = { days: { a: done(), b: { id: 'f', solved: [1], done: false }, c: { id: 'f', solved: [], done: false } } };
   assert.equal(dayStatus(p, 'a'), 'done');
   assert.equal(dayStatus(p, 'b'), 'started');
   assert.equal(dayStatus(p, 'c'), null);
@@ -51,7 +52,7 @@ test('stats: серии считаются только по дням, решё�
       '2026-09-29': done(false), // из архива — в total, но не в серию
       '2026-10-01': done(),
       '2026-10-02': done(),
-      '2026-10-03': { fact: 'f', solved: [0], done: false },
+      '2026-10-03': { id: 'f', solved: [0], done: false },
     },
   };
   assert.deepEqual(stats(p, '2026-10-03'), { total: 6, streak: 2, best: 3 }, 'сегодня ещё не решено — серия от вчера');

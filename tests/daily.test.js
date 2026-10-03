@@ -1,17 +1,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parse, validate } from '../web/js/parser.js';
+import { parse } from '../web/js/parser.js';
 import { localDate, isDate, dayNumber, pickPuzzle } from '../web/js/daily.js';
 
 const puzzles = JSON.parse(readFileSync(new URL('../web/data/puzzles.json', import.meta.url), 'utf8'));
 
-test('puzzles.json: каждая головоломка валидна, даты уникальны', () => {
+test('puzzles.json: только зашифрованные головоломки, даты уникальны', () => {
   for (const p of puzzles) {
+    assert.deepEqual(Object.keys(p).sort(), ['date', 'id', 'nodes', 'puzzle_text'], `${p.date}: лишние поля — ответы или факт не должны публиковаться`);
     assert.ok(isDate(p.date), `плохая дата ${p.date}`);
-    assert.deepEqual(validate(p, parse(p.puzzle_text)), [], p.date);
+    assert.equal(parse(p.puzzle_text).nodes.length, p.nodes.length, p.date);
+    for (const n of p.nodes) {
+      assert.deepEqual(Object.keys(n).sort(), ['hash', 'sealed'], p.date);
+      assert.match(n.hash, /^[0-9a-f]{64}$/, p.date);
+    }
   }
   assert.equal(new Set(puzzles.map((p) => p.date)).size, puzzles.length);
+  assert.equal(new Set(puzzles.map((p) => p.id)).size, puzzles.length, 'id головоломок уникальны');
 });
 
 test('localDate берёт локальную дату, а не UTC', () => {

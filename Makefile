@@ -1,8 +1,9 @@
 PORT ?= 8000
 URL  := http://localhost:$(PORT)
+SRC  ?= puzzles/source.json
 
 .DEFAULT_GOAL := help
-.PHONY: help dev open test test-watch check deploy deploy-prod
+.PHONY: help dev open test test-watch check seal deploy deploy-prod
 
 help: ## Список команд
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  make %-12s %s\n", $$1, $$2}'
@@ -21,7 +22,10 @@ test-watch: ## Тесты в режиме наблюдения — переза�
 	node --test --watch tests/*.test.js
 
 check: ## Проверить синтаксис всех JS-файлов
-	@for f in web/js/*.js tests/*.js; do node --check $$f || exit 1; done && echo "ok"
+	@for f in web/js/*.js tests/*.js tools/*.mjs; do node --check $$f || exit 1; done && echo "ok"
+
+seal: ## Зашифровать головоломки из SRC (puzzles/source.json) в web/data/puzzles.json; REPLACE=1 — перепечатать даты
+	node tools/seal.mjs $(SRC) $(if $(REPLACE),--replace)
 
 deploy: check test ## Превью-выкладка на Vercel (первый раз спросит логин и имя проекта)
 	cd web && npx vercel

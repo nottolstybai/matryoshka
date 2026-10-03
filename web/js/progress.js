@@ -1,7 +1,8 @@
 // Прогресс игрока в localStorage.
-// Формат: { days: { 'YYYY-MM-DD': { fact, solved: [id…], done, onTime } } }
-//   fact   — текст факта; если пул поменялся и дате досталась другая головоломка, запись не применяется;
-//   onTime — факт собран в свой же день (только такие дни идут в серию).
+// Формат: { days: { 'YYYY-MM-DD': { id, solved: [n…], answers: { n: слово }, done, onTime } } }
+//   id      — id головоломки; если пул поменялся и дате досталась другая головоломка, запись не применяется;
+//   answers — разгаданные слова: в puzzles.json их нет в открытом виде, а показывать после перезагрузки надо;
+//   onTime  — факт собран в свой же день (только такие дни идут в серию).
 
 import { dayNumber } from './daily.js';
 
@@ -23,9 +24,9 @@ export function saveProgress(progress, storage = globalThis.localStorage) {
 }
 
 // Запись дня, если она относится к этой же головоломке.
-export function dayEntry(progress, date, fact) {
+export function dayEntry(progress, date, id) {
   const e = progress.days[date];
-  return e && e.fact === fact ? e : null;
+  return e && e.id === id ? e : null;
 }
 
 export function dayStatus(progress, date) {

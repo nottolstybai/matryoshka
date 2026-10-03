@@ -20,7 +20,7 @@ const EASE = 'cubic-bezier(.2, .7, .2, 1)';
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Окончание анимации. В скрытой вкладке браузер не доигрывает анимации и anim.finished
 // не наступает, пока игрок не вернётся, — поэтому подстраховываемся таймером.
-const finished = (anim) => {
+export const finished = (anim) => {
   const ms = anim.effect.getComputedTiming().endTime + 50;
   return Promise.race([anim.finished.catch(() => {}), new Promise((r) => setTimeout(r, ms))]);
 };

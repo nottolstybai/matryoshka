@@ -89,7 +89,11 @@ test('fromDraft: вид «скрытое слово» может содержа�
 
   const notInside = draft();
   notInside.text = notInside.text.replace('подсказка номер 3 с', 'спрятан в «программе» с');
-  assert.match(fromDraft(notInside).errors.join(), /ребус #6 .*ответа внутри подсказки нет/);
+  assert.match(fromDraft(notInside).errors.join(), /ребус #6 .*ответа нет в «программе»/);
+
+  const oneCarrierWrong = draft();
+  oneCarrierWrong.text = oneCarrierWrong.text.replace('подсказка номер 3 с', 'спрятан в «гаммаглобулине» и «программе» с');
+  assert.match(fromDraft(oneCarrierWrong).errors.join(), /ребус #6 .*ответа нет в «программе»/, 'проверяется каждое слово-носитель');
 
   const leakedElsewhere = draft();
   leakedElsewhere.text = leakedElsewhere.text.replace('подсказка номер 3 с', 'спрятан в «гаммаглобулине» с').replace('подсказка номер 4 с', 'подсказка про гаммаизлучение с');

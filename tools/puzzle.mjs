@@ -96,13 +96,18 @@ export function fromDraft(draft, { date, knownFacts = [] } = {}) {
     let seenText = visible;
     let seenWords = words;
     if (hidden) {
-      if (!normalize(ownText.join(' ')).includes(a)) errors.push(`${label(i, n.clue)}: заявлено скрытое слово, но ответа внутри подсказки нет`);
+      // Ответ должен быть в каждом слове-носителе в кавычках, а если кавычек нет — хотя бы где-то в подсказке.
+      // Носитель может быть собран из вложенного ребуса («{…|апостол}е») — берём текст с подставленными ответами.
+      const full = n.parts.map((x) => (typeof x === 'string' ? x : answers[x.id])).join('');
+      const carriers = [...full.matchAll(/«([^»]+)»/g)].map((m) => normalize(m[1]));
+      const missing = carriers.length ? carriers.filter((c) => !c.includes(a)) : normalize(full).includes(a) ? [] : [''];
+      if (missing.length) errors.push(`${label(i, n.clue)}: заявлено скрытое слово, но ответа нет в ${carriers.length ? `«${missing.join('», «')}»` : 'подсказке'}`);
       seenText = normalize(ownText.reduce((t, part) => t.replace(part, ' '), puzzle_text));
       seenWords = new Set(seenText.split(/[^\p{L}\p{N}-]+/u));
     }
     if (seenWords.has(a)) errors.push(`${label(i, n.clue)}: ответ стоит в тексте подсказок целым словом`);
     else if (a.length >= 4 && seenText.includes(a)) errors.push(`${label(i, n.clue)}: ответ спрятан внутри слова в подсказках`);
-    else if (seenText.includes(a)) warnings.push(`${label(i, n.clue)}: короткий ответ встречается внутри слова в подсказках — проверь, не подсказка ли это`);
+    // Кусочки из 2–3 букв («ты», «сто») совпадают с буквами обычных слов постоянно — про них не предупреждаем.
     if (seen.has(a)) warnings.push(`${label(i, n.clue)}: тот же ответ, что у ребуса #${seen.get(a) + 1}`);
     else seen.set(a, i);
     // Буквенные виды подсказок проверяются по буквам: в них чаще всего ошибаются.
@@ -157,7 +162,9 @@ function load(draftPath) {
   const source = readJson(SOURCE);
   const pool = readJson(POOL);
   const draft = JSON.parse(readFileSync(draftPath, 'utf8'));
-  const date = draft.date ?? nextDate(pool, localDate());
+  // Дата: из поля date, иначе из имени файла (2026-10-09.json), иначе следующая свободная.
+  const fromName = draftPath.match(/(\d{4}-\d{2}-\d{2})\.json$/)?.[1];
+  const date = draft.date ?? (fromName && isDate(fromName) ? fromName : nextDate(pool, localDate()));
   const result = fromDraft(draft, { date, knownFacts: source.map((p) => p.fact) });
   if (pool.some((p) => p.date === date)) result.errors.push(`дата ${date} уже занята`);
   return { source, pool, date, result };

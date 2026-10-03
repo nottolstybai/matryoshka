@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f4efe4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16140f" media="(prefers-color-scheme: dark)">
+  <title>Матрёшка — факт в ребусах</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&family=Inter:wght@400..700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <p class="eyebrow">Ежедневный факт в ребусах</p>
+      <h1>Матрёшка</h1>
+      <p class="dateline">
+        <span id="kicker">Факт дня</span><span class="sep">·</span><time id="day"></time>
+        <a id="to-today" class="to-today" href="./" hidden>К факту дня →</a>
+      </p>
+    </header>
+
+    <main>
+      <section class="sheet" aria-labelledby="puzzle-heading">
+        <h2 id="puzzle-heading" class="sr-only">Головоломка</h2>
+        <div class="sheet-top">
+          <p id="progress" class="progress"><span class="dots" aria-hidden="true"></span><span id="count"></span></p>
+          <button type="button" id="howto-open" class="pill">Как играть</button>
+        </div>
+
+        <div id="board" class="board"></div>
+
+        <form id="guess-form" class="guess" autocomplete="off" novalidate>
+          <label for="guess" class="sr-only">Ответ</label>
+          <input id="guess" type="text" placeholder="Ваш ответ" enterkeyhint="done" autocapitalize="off" autocorrect="off" spellcheck="false">
+          <button type="submit">Проверить</button>
+        </form>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+
+        <div id="finale" class="finale" hidden>
+          <p class="finale-title">Факт собран!</p>
+          <p id="finale-text" class="finale-text"></p>
+        </div>
+      </section>
+
+      <section id="archive" class="archive" aria-labelledby="archive-heading">
+        <h2 id="archive-heading">Архив</h2>
+        <dl class="stats">
+          <div><dt>Решено</dt><dd id="stat-total">0</dd></div>
+          <div><dt>Серия</dt><dd id="stat-streak">0</dd></div>
+          <div><dt>Лучшая серия</dt><dd id="stat-best">0</dd></div>
+        </dl>
+        <div id="calendar" class="calendar"></div>
+      </section>
+    </main>
+
+  </div>
+
+  <dialog id="howto" class="howto" aria-labelledby="howto-title">
+    <div class="howto-inner">
+      <h2 id="howto-title">Как играть</h2>
+      <p>Часть слов в факте спрятана в ребусы — подсказки в фигурных скобках. Разгадайте слово и введите его <b>в начальной форме</b>: окончание уже стоит в тексте.</p>
+      <p class="howto-note">Ребусы бывают вложенными — тогда решайте изнутри наружу: сначала выделенные цветом.</p>
+
+      <div class="howto-try">
+        <p class="howto-label">Попробуйте</p>
+        <div id="howto-board" class="board"></div>
+        <form id="howto-form" class="guess" autocomplete="off" novalidate>
+          <label for="howto-guess" class="sr-only">Ответ на пример</label>
+          <input id="howto-guess" type="text" placeholder="Ваш ответ" enterkeyhint="done" autocapitalize="off" autocorrect="off" spellcheck="false">
+          <button type="submit">Проверить</button>
+        </form>
+        <p id="howto-status" class="status" aria-live="polite"></p>
+      </div>
+
+      <div class="howto-actions">
+        <button type="button" id="howto-done" class="pill">Пропустить</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

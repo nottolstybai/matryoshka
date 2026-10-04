@@ -453,8 +453,13 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 10px 12px;
+  /* Цифры — на одной линии во всех плитках, даже если подпись где-то длиннее. */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
 }
-.stats dt { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.stats dt { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stats dd { margin: 2px 0 0; font: 600 1.35rem/1.1 var(--serif); }
 
 .calendar {

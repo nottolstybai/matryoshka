@@ -195,7 +195,15 @@ export function fromDraft(draft, { date, knownFacts = [] } = {}) {
   if (knownFacts.some((f) => normalize(f) === normalize(source.fact))) errors.push('такой факт уже есть в пуле');
   if (date && !isDate(date)) errors.push(`плохая дата ${date}`);
 
-  return { source, errors, warnings, stats, glued: gluedWords(tree, answers) };
+  // Кусочек-имя внутри слова даёт заглавную посреди него: «Гёте» + «Борг» + «а» = «ГётеБорга».
+  const glued = gluedWords(tree, answers);
+  for (const g of glued) {
+    if (/^.+\p{Lu}/u.test(g.word) && g.word !== g.word.toUpperCase()) {
+      errors.push(`${label(g.id, tree.nodes[g.id].clue)}: в склеенном слове заглавная буква в середине — кусочек внутри слова пиши строчными`);
+    }
+  }
+
+  return { source, errors, warnings, stats, glued };
 }
 
 // Соседние дни перед датой: из исходника и из черновиков, лежащих рядом.

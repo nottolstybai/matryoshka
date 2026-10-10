@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fromDraft, nextDate } from '../tools/puzzle.mjs';
+import { fromDraft, nextDate, gluedWords, repeatedAnswers } from '../tools/puzzle.mjs';
+import { parse } from '../web/js/parser.js';
 
 // Черновик из 13 ребусов: 6 верхних, у каждого вложенный, у первого вложенного — ещё один (третий уровень).
 const TOPS = ['альфа', 'бета', 'гамма', 'дельта', 'эпсилон', 'зета'];
@@ -98,6 +99,32 @@ test('fromDraft: вид «скрытое слово» может содержа�
   const leakedElsewhere = draft();
   leakedElsewhere.text = leakedElsewhere.text.replace('подсказка номер 3 с', 'спрятан в «гаммаглобулине» с').replace('подсказка номер 4 с', 'подсказка про гаммаизлучение с');
   assert.match(fromDraft(leakedElsewhere).errors.join(), /ребус #6 .*спрятан внутри слова/);
+});
+
+test('gluedWords: находит слова, склеенные из кусочков, а целые ответы не трогает', () => {
+  // #1 «от двух {a}{b}ок до {c}а и {d}» — ответы: поло, сок, дом, кот.
+  const tree = parse('{от двух {a}{b}ок до {c}а и {d}} и {e}ы');
+  const glued = gluedWords(tree, ['путь', 'поло', 'сок', 'дом', 'кот', 'гора']);
+  assert.deepEqual(glued, [
+    { id: 0, word: 'полосокок' },
+    { id: 0, word: 'дома' },
+  ]);
+});
+
+test('fromDraft: отдаёт склеенные слова для проверки по словарю', () => {
+  const r = fromDraft(draft(), { date: '2030-01-01' });
+  assert.deepEqual(r.glued.filter((g) => g.id === 0), [{ id: 0, word: 'йотаом' }]);
+});
+
+test('repeatedAnswers: предупреждает об ответе из соседнего дня, не называя его', () => {
+  const { source } = fromDraft(draft(), { date: '2030-01-08' });
+  const warnings = repeatedAnswers(source, [
+    { date: '2030-01-05', answers: ['Каппа', 'ноль'] },
+    { date: '2030-01-07', answers: ['пи'] },
+  ]);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /ребус #5 .*2030-01-05/);
+  assert.ok(!warnings[0].includes('каппа'));
 });
 
 test('nextDate: после последней даты пула, но не раньше сегодня', () => {

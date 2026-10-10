@@ -2,6 +2,7 @@
 //
 //   node tools/puzzle.mjs status          — следующая свободная дата, прошлые сферы, темы и факты (будущие — без спойлеров)
 //   node tools/puzzle.mjs check <draft>   — проверить черновик
+//   node tools/puzzle.mjs glue <draft>    — слова в подсказках, склеенные из кусочков (со спойлерами: для агентов, не для чата)
 //   node tools/puzzle.mjs add <draft>     — проверить, дописать в puzzles/source.json и зашифровать в пул
 //   node tools/puzzle.mjs hints <file>    — дописать доп. подсказки старым головоломкам: { "дата": ["подсказка узла 0", …] }
 //                                           (после этого — make seal, он дополнит пул без смены id)
@@ -11,10 +12,12 @@
 //   «Мыши боятся {домашний зверь, который мурлычет|кот|он говорит «мяу»}ов»
 // Ответ и доп. подсказка — в конце своих скобок, после вложенных ребусов.
 // Скрипт сам вырезает ответы, строит puzzle_text и nodes (clue/depth/parent) в авторском формате.
-// В выводе нет ответов — только номера ребусов и начало подсказки.
+// В выводе нет ответов — только номера ребусов и начало подсказки (кроме команды glue).
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parse, validate } from '../web/js/parser.js';
 import { normalize } from '../web/js/model.js';
 import { isDate, localDate, parseDate } from '../web/js/daily.js';
@@ -25,6 +28,8 @@ const POOL = new URL('../web/data/puzzles.json', import.meta.url);
 
 // Требования к головоломке.
 export const LIMITS = { minRebuses: 12, maxRebuses: 22, minFact: 150, goodFact: 200, maxFact: 450 };
+// Тот же ответ не должен встречаться чаще, чем раз в столько дней: игрок его ещё помнит.
+export const REPEAT_DAYS = 7;
 
 const readJson = (url) => (existsSync(url) ? JSON.parse(readFileSync(url, 'utf8')) : []);
 const short = (s) => (s.length > 40 ? `${s.slice(0, 40)}…` : s);
@@ -37,6 +42,48 @@ export function nextDate(pool, today) {
   const d = parseDate(last);
   d.setDate(d.getDate() + 1);
   return localDate(d);
+}
+
+// Слова в подсказках, склеенные из кусочков: ответ вложенного ребуса плюс буквы вплотную к скобкам
+// или соседний кусочек («поло»+«сок» = «полосок»). Сборку в факт они не затрагивают, поэтому
+// остальные проверки их не видят, а ошибаются в них чаще всего.
+export function gluedWords(tree, answers) {
+  const glued = [];
+  for (const n of tree.nodes) {
+    let text = '';
+    const spans = [];
+    for (const part of n.parts) {
+      const piece = typeof part === 'string' ? part : answers[part.id];
+      if (typeof part !== 'string') spans.push([text.length, text.length + piece.length]);
+      text += piece;
+    }
+    for (const m of text.matchAll(/[\p{L}\p{N}]+/gu)) {
+      const [from, to] = [m.index, m.index + m[0].length];
+      const inside = spans.filter(([a, b]) => a < to && b > from);
+      const whole = inside.length === 1 && inside[0][0] === from && inside[0][1] === to;
+      if (inside.length && !whole) glued.push({ id: n.id, word: m[0] });
+    }
+  }
+  return glued;
+}
+
+// Ответы, которые уже были в соседних днях. days — [{ date, answers }].
+export function repeatedAnswers(source, days) {
+  const warnings = [];
+  source.nodes.forEach((n, i) => {
+    const day = days.find((d) => d.answers.some((a) => normalize(a) === normalize(n.answer)));
+    if (day) warnings.push(`${label(i, n.clue)}: тот же ответ есть в головоломке на ${day.date} — замени кусочек или подсказку в одной из двух`);
+  });
+  return warnings;
+}
+
+// Слова, которых нет в системном словаре macOS. На других системах проверки нет — null.
+function misspelled(words) {
+  if (process.platform !== 'darwin') return null;
+  if (!words.length) return [];
+  const script = fileURLToPath(new URL('./spell.jxa.js', import.meta.url));
+  const r = spawnSync('osascript', ['-l', 'JavaScript', script, ...words], { encoding: 'utf8' });
+  return r.status === 0 ? r.stdout.split('\n').filter(Boolean) : null;
 }
 
 // Черновик → головоломка в авторском формате + ошибки, предупреждения и статистика.
@@ -111,7 +158,7 @@ export function fromDraft(draft, { date, knownFacts = [] } = {}) {
     if (seen.has(a)) warnings.push(`${label(i, n.clue)}: тот же ответ, что у ребуса #${seen.get(a) + 1}`);
     else seen.set(a, i);
     // Буквенные виды подсказок проверяются по буквам: в них чаще всего ошибаются.
-    const own = n.clue.replace(/\{[^]*\}/g, '');
+    const own = ownText.join('');
     const letters = (w) => [...normalize(w).replace(/[^\p{L}]/gu, '')];
     const anagram = own.match(/анаграмма (?:слова )?«([^»]+)»/i);
     if (anagram) {
@@ -126,7 +173,7 @@ export function fromDraft(draft, { date, knownFacts = [] } = {}) {
     const h = normalize(hints[i]);
     if (!h) errors.push(`${label(i, n.clue)}: нет дополнительной подсказки (третья часть после «|»)`);
     else if (h.includes(a)) errors.push(`${label(i, n.clue)}: дополнительная подсказка содержит ответ`);
-    else if (h === normalize(n.clue.replace(/\{[^]*\}/g, ''))) errors.push(`${label(i, n.clue)}: дополнительная подсказка повторяет основную`);
+    else if (h === normalize(own)) errors.push(`${label(i, n.clue)}: дополнительная подсказка повторяет основную`);
   });
 
   const stats = {
@@ -148,7 +195,25 @@ export function fromDraft(draft, { date, knownFacts = [] } = {}) {
   if (knownFacts.some((f) => normalize(f) === normalize(source.fact))) errors.push('такой факт уже есть в пуле');
   if (date && !isDate(date)) errors.push(`плохая дата ${date}`);
 
-  return { source, errors, warnings, stats };
+  return { source, errors, warnings, stats, glued: gluedWords(tree, answers) };
+}
+
+// Соседние дни перед датой: из исходника и из черновиков, лежащих рядом.
+function neighbours(source, draftPath, date) {
+  const near = (d) => d < date && (parseDate(date) - parseDate(d)) / 864e5 <= REPEAT_DAYS;
+  const days = source.filter((p) => near(p.date)).map((p) => ({ date: p.date, answers: p.nodes.map((n) => n.answer) }));
+  const dir = dirname(draftPath);
+  for (const file of readdirSync(dir)) {
+    const d = file.match(/^(\d{4}-\d{2}-\d{2})\.json$/)?.[1];
+    if (!d || !isDate(d) || !near(d) || days.some((x) => x.date === d)) continue;
+    try {
+      const other = fromDraft(JSON.parse(readFileSync(join(dir, file), 'utf8')), { date: d }).source;
+      if (other) days.push({ date: d, answers: other.nodes.map((n) => n.answer) });
+    } catch {
+      // Недописанный соседний черновик — не повод падать.
+    }
+  }
+  return days;
 }
 
 function report({ errors, warnings, stats }) {
@@ -167,6 +232,13 @@ function load(draftPath) {
   const date = draft.date ?? (fromName && isDate(fromName) ? fromName : nextDate(pool, localDate()));
   const result = fromDraft(draft, { date, knownFacts: source.map((p) => p.fact) });
   if (pool.some((p) => p.date === date)) result.errors.push(`дата ${date} уже занята`);
+  if (result.source) {
+    result.warnings.push(...repeatedAnswers(result.source, neighbours(source, draftPath, date)));
+    result.bad = misspelled([...new Set(result.glued.map((g) => g.word))]);
+    for (const g of result.glued) {
+      if (result.bad?.includes(g.word)) result.warnings.push(`${label(g.id, result.source.nodes[g.id].clue)}: слова, склеенного из кусочков, нет в словаре — проверь по буквам (команда glue)`);
+    }
+  }
   return { source, pool, date, result };
 }
 
@@ -189,6 +261,17 @@ async function main([cmd, arg]) {
     console.log(`Дата: ${date}`);
     report(result);
     process.exitCode = result.errors.length ? 1 : 0;
+    return;
+  }
+  if (cmd === 'glue' && arg) {
+    const { result } = load(arg);
+    if (!result.source) return report(result);
+    console.log('Слова, склеенные из кусочков (со спойлерами). Каждое должно быть настоящим словом в нужной форме:');
+    result.source.nodes.forEach((n, i) => {
+      const words = result.glued.filter((g) => g.id === i).map((g) => (result.bad?.includes(g.word) ? `${g.word} ✗ нет в словаре` : g.word));
+      if (words.length) console.log(`  #${i + 1}: ${words.join(', ')}`);
+    });
+    if (result.bad === null) console.log('  (словарь недоступен — орфография не проверялась)');
     return;
   }
   if (cmd === 'add' && arg) {
@@ -230,7 +313,7 @@ async function main([cmd, arg]) {
     console.log('Подсказки записаны в исходник. Теперь: make seal');
     return;
   }
-  console.error('Использование: node tools/puzzle.mjs status | check <draft.json> | add <draft.json> | hints <file.json>');
+  console.error('Использование: node tools/puzzle.mjs status | check <draft.json> | glue <draft.json> | add <draft.json> | hints <file.json>');
   process.exitCode = 1;
 }
 

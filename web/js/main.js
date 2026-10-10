@@ -2,8 +2,8 @@ import { parse, assemble } from './parser.js';
 import { Game } from './model.js';
 import { answerHash, openAnswer, openAux } from './crypto.js';
 import { render, collapse, nudge, reveal, celebrate, shake } from './render.js';
-import { localDate, isDate, parseDate, pickPuzzle } from './daily.js';
-import { loadProgress, saveProgress, dayEntry, dayStatus, stats } from './progress.js';
+import { localDate, parseDate, pickPuzzle, latestDate } from './daily.js';
+import { KEY as PROGRESS_KEY, loadProgress, saveDay, dayEntry, dayStatus, stats } from './progress.js';
 import { renderCalendar } from './calendar.js';
 import { setupHowto } from './howto.js';
 import { setupThemeToggle } from './theme.js';
@@ -15,7 +15,11 @@ const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const autofocus = () => matchMedia('(pointer: fine)').matches;
 
 // Общее на всю страницу: пул, даты, прогресс. Заполняется один раз в main().
-const ctx = { puzzles: [], today: '', first: '', progress: { days: {} }, store: null };
+//   dates — даты всех головоломок пула; first/last — первый и последний вышедший день.
+//   last обычно равен today, а когда пул кончился — отстаёт от него: тогда открываем last, а не пустоту.
+const ctx = { puzzles: [], dates: new Set(), today: '', first: '', last: '', progress: { days: {} }, store: null };
+// Вышел ли день: головоломка на него есть, и её дата уже наступила.
+const isOut = (date) => ctx.dates.has(date) && date <= ctx.last;
 // Открытый день: { date, puzzle, game, sel, hints, errors, elapsed, since, share }.
 //   sel     — id ребуса, выбранного кликом, или null;
 //   hints   — взятые подсказки: { id: { hint: текст, letter: буква, reveal: true } };
@@ -33,10 +37,10 @@ async function loadPuzzles() {
   return res.json();
 }
 
-// Дата из ?date=YYYY-MM-DD (архив); будущие дни и дни до первой головоломки не открываем.
+// Дата из ?date=YYYY-MM-DD (архив); открываем только вышедшие дни, иначе — последний из них.
 function chosenDate() {
   const q = new URLSearchParams(location.search).get('date');
-  return q && isDate(q) && q >= ctx.first && q <= ctx.today ? q : ctx.today;
+  return q && isOut(q) ? q : ctx.last;
 }
 
 // Сам доступ к localStorage может бросить SecurityError (запрещены cookies) — тогда играем без сохранения.
@@ -59,7 +63,7 @@ function showStats() {
 }
 
 function drawCalendar() {
-  renderCalendar($('#calendar'), { view: cal.view, first: ctx.first, today: ctx.today, selected: cal.selected, progress: ctx.progress, onNav });
+  renderCalendar($('#calendar'), { view: cal.view, first: ctx.first, last: ctx.last, today: ctx.today, selected: cal.selected, isOpen: isOut, progress: ctx.progress, onNav });
 }
 
 function onNav(delta) {
@@ -103,9 +107,9 @@ function syncTimer() {
 
 // ---- сохранение -------------------------------------------------------------------
 
+// Запись дня ложится поверх свежего содержимого хранилища (saveDay): в другой вкладке могли играть.
 function save(d) {
-  const prev = dayEntry(ctx.progress, d.date, d.puzzle.id);
-  ctx.progress.days[d.date] = {
+  const entry = {
     id: d.puzzle.id,
     solved: [...d.game.solved],
     answers: Object.fromEntries([...d.game.solved].map((id) => [id, d.game.answers[id]])),
@@ -113,9 +117,19 @@ function save(d) {
     errors: d.errors,
     time: Math.round(elapsed(d)),
     done: d.game.done,
-    onTime: prev?.onTime || (d.game.done && localDate() === d.date),
+    onTime: d.game.done && localDate() === d.date,
   };
-  saveProgress(ctx.progress, ctx.store);
+  ctx.progress = saveDay(ctx.progress, d.date, entry, d.game.tree.nodes.length, ctx.store);
+}
+
+// Другая вкладка сохранила прогресс: подхватываем его, а если в открытом дне там разгадано больше — перерисовываем день.
+function syncTabs(e) {
+  if (e.storageArea !== ctx.store || (e.key !== null && e.key !== PROGRESS_KEY)) return;
+  ctx.progress = loadProgress(ctx.store);
+  showStats();
+  drawCalendar();
+  const entry = day && dayEntry(ctx.progress, day.date, day.puzzle.id);
+  if (entry?.solved.some((id) => !day.game.isSolved(id))) openDay(day.date);
 }
 
 // Останавливает таймер дня и запоминает время (уход со страницы, переключение дня).
@@ -264,7 +278,7 @@ function finish(d, animated) {
   $('#res-reveals').textContent = result.reveals;
   $('#finale-text').textContent = d.date === ctx.today
     ? `Решено фактов: ${s.total} · серия: ${s.streak}. Завтра будет новый факт.`
-    : `Решено фактов: ${s.total}.`;
+    : `Решено фактов: ${s.total}.${isStale(d.date) ? ' Новый факт ещё не вышел.' : ''}`;
   // Текст для «Поделиться»: ссылка ведёт на этот же день, серия — только у сегодняшнего.
   d.share = shareText({
     date: parseDate(d.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }),
@@ -310,6 +324,9 @@ function solved(d, id, message, kind) {
   showTarget();
 }
 
+// Пул кончился, и открыт последний вышедший день: свежего факта на сегодня нет.
+const isStale = (date) => date === ctx.last && ctx.last < ctx.today;
+
 // Показывает день: строит игру, восстанавливает прогресс, сбрасывает поле, шапку и календарь.
 function openDay(date) {
   park(day);
@@ -330,8 +347,8 @@ function openDay(date) {
   const isToday = date === ctx.today;
   $('#day').textContent = fmtDate(date);
   $('#day').dateTime = date;
-  $('#kicker').textContent = isToday ? 'Факт дня' : 'Из архива';
-  $('#to-today').hidden = isToday;
+  $('#kicker').textContent = isToday ? 'Факт дня' : isStale(date) ? 'Последний факт' : 'Из архива';
+  $('#to-today').hidden = date === ctx.last;
 
   const d = parseDate(date);
   cal.selected = date;
@@ -353,14 +370,15 @@ function openDay(date) {
   if (game.done) {
     finish(day, false);
   } else {
-    setStatus(game.solved.size ? 'Продолжайте: подсвеченные ребусы открыты.' : 'Начните с подсвеченных ребусов. Ответ — слово в начальной форме.');
+    const start = game.solved.size ? 'Продолжайте: подсвеченные ребусы открыты.' : 'Начните с подсвеченных ребусов. Ответ — одно слово.';
+    setStatus(isStale(date) ? `Нового факта пока нет — это последний из вышедших. ${start}` : start);
     if (autofocus()) input.focus({ preventScroll: true });
   }
 }
 
 // Переход на другой день без перезагрузки: адрес меняется, страница плавно уезжает к шапке.
 function navigate(date, push) {
-  if (push) history.pushState(null, '', date === ctx.today ? './' : `?date=${date}`);
+  if (push) history.pushState(null, '', date === ctx.last ? './' : `?date=${date}`);
   openDay(date);
   window.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' });
   if (!reduced()) {
@@ -448,9 +466,11 @@ function setupPage() {
     if (!day || day.game.done) return;
     const input = $('#guess');
     const value = input.value.trim();
+    // Кнопка «Проверить» забирает фокус себе; возвращаем его в поле, чтобы следующий ответ
+    // можно было набирать сразу (и чтобы на телефоне не закрывалась клавиатура).
+    input.focus({ preventScroll: true });
     if (!value) {
-      setStatus('Введите слово в начальной форме — ответ на подсвеченный ребус.', 'hint');
-      input.focus();
+      setStatus('Введите слово — ответ на подсвеченный ребус.', 'hint');
       return;
     }
     const d = day;
@@ -495,8 +515,9 @@ function setupPage() {
     const a = e.target.closest('a.cal-day');
     if (a) follow(e, new URL(a.href).searchParams.get('date'));
   });
-  $('#to-today').addEventListener('click', (e) => follow(e, ctx.today));
+  $('#to-today').addEventListener('click', (e) => follow(e, ctx.last));
   window.addEventListener('popstate', () => navigate(chosenDate(), false));
+  window.addEventListener('storage', syncTabs);
 }
 
 async function main() {
@@ -507,8 +528,12 @@ async function main() {
     const puzzles = await loadPuzzles();
     if (!puzzles.length) throw new Error('В puzzles.json нет головоломок');
     ctx.puzzles = puzzles;
+    ctx.dates = new Set(puzzles.map((p) => p.date));
     ctx.today = localDate();
     ctx.first = puzzles.map((p) => p.date).sort()[0];
+    ctx.last = latestDate(puzzles, ctx.today);
+    if (!ctx.last) throw new Error('Первый факт ещё не вышел — загляните позже.');
+    if (ctx.last < ctx.today) $('#to-today').textContent = 'К последнему факту →';
     ctx.store = storage();
     ctx.progress = loadProgress(ctx.store);
     setupPage();

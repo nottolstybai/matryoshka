@@ -15,6 +15,10 @@
 // data-owner — чей кусок текста: id ребуса (его скобки и текст его подсказки) или 'root'.
 // Когда ребус id схлопывается, его собственные пристёжки исчезают вместе с подсказкой,
 // а чужие (скобки внешних ребусов, окончание из текста родителя) переезжают в слово-ответ.
+//
+// Ребусы, стоящие вплотную друг к другу («{Каст}{ор}а»), — кусочки одного слова. Пристёжкой их
+// не связать, поэтому такой ряд завёрнут в <span class="chain"> (nowrap): слово не рвётся на переносе.
+// Между двумя ещё не разгаданными подсказками перенос оставлен (<wbr>): они длинные и читаются порознь.
 
 import { tokenize } from './tokens.js';
 
@@ -71,6 +75,8 @@ export async function collapse(container, game, id) {
   box.replaceWith(ans);
   el.classList.remove('active', 'locked');
   el.classList.add('solved');
+  // Разгаданный кусочек срастается с соседями по слову: перенос рядом с ним больше не нужен.
+  for (const s of [el.previousElementSibling, el.nextElementSibling]) if (s?.tagName === 'WBR') s.remove();
   const parentId = game.tree.nodes[id].parent;
   const parentEl = parentId === null ? null : container.querySelector(`.rebus[data-id="${parentId}"]`);
   if (parentEl && !parentEl.classList.contains('solved')) {
@@ -204,6 +210,29 @@ function buildParts(parts, game, owner, inBox) {
     pre = t.post;
     last = null;
   });
+  return chain(out);
+}
+
+// Собирает ребусы, между которыми нет ни слова, ни пробела, в неразрывный ряд .chain.
+function chain(nodes) {
+  const out = [];
+  for (const n of nodes) {
+    const prev = out.at(-1);
+    if (!isRebus(n) || !(isRebus(prev) || prev?.classList?.contains('chain'))) {
+      out.push(n);
+      continue;
+    }
+    let row = prev;
+    if (isRebus(prev)) {
+      row = document.createElement('span');
+      row.className = 'chain';
+      row.append(prev);
+      out[out.length - 1] = row;
+    }
+    const solved = (el) => el.classList.contains('solved');
+    if (!solved(row.lastElementChild) && !solved(n)) row.append(document.createElement('wbr'));
+    row.append(n);
+  }
   return out;
 }
 
@@ -232,11 +261,12 @@ function buildBox(node, game) {
 }
 
 const isToken = (n) => n instanceof Element && n.classList.contains('w');
+const isRebus = (n) => n instanceof Element && n.classList.contains('rebus');
 
 // Крайнее слово ребуса, подсказки или слова: side — 'lead' (первое) или 'trail' (последнее).
 function edgeToken(node, side) {
   if (isToken(node)) return node;
-  const kids = [...node.children].filter((k) => isToken(k) || k.matches('.rebus, .box'));
+  const kids = [...node.children].filter((k) => isToken(k) || k.matches('.rebus, .box, .chain'));
   return edgeToken(side === 'lead' ? kids[0] : kids.at(-1), side);
 }
 

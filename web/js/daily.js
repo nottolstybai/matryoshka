@@ -21,14 +21,13 @@ export function dayNumber(s) {
   return Date.UTC(y, m - 1, d) / 86400000;
 }
 
-// Головоломка с точной датой, а если её нет — по кругу от самой ранней даты,
-// чтобы игра не пустела, когда пул закончился.
+// Головоломка этой даты или null. Чужую под дату не подставляем: игрок принял бы её за новую.
 export function pickPuzzle(puzzles, date) {
-  if (!puzzles.length) return null;
-  const exact = puzzles.find((p) => p.date === date);
-  if (exact) return exact;
-  const sorted = [...puzzles].sort((a, b) => a.date.localeCompare(b.date));
-  const n = sorted.length;
-  const i = dayNumber(date) - dayNumber(sorted[0].date);
-  return sorted[((i % n) + n) % n];
+  return puzzles.find((p) => p.date === date) ?? null;
+}
+
+// Последний вышедший день: самая поздняя дата пула не позже today. Когда пул кончился,
+// игра открывает его, а не пустую страницу. null — ещё ничего не вышло.
+export function latestDate(puzzles, today) {
+  return puzzles.map((p) => p.date).filter((d) => d <= today).sort().at(-1) ?? null;
 }

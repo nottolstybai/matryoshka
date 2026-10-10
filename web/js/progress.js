@@ -9,21 +9,62 @@
 
 import { dayNumber } from './daily.js';
 
-const KEY = 'fact-rebus:v1';
+export const KEY = 'fact-rebus:v1';
 
-// storage передаётся явно в тестах; в браузере localStorage может быть недоступен — тогда играем без сохранения.
-export function loadProgress(storage = globalThis.localStorage) {
+// Сырой прогресс из хранилища; null — хранилище недоступно (нет localStorage, запрещены cookies).
+function read(storage) {
+  let raw;
   try {
-    const p = JSON.parse(storage.getItem(KEY));
+    raw = storage.getItem(KEY);
+  } catch {
+    return null;
+  }
+  try {
+    const p = JSON.parse(raw);
     if (p && typeof p.days === 'object') return p;
   } catch {}
   return { days: {} };
+}
+
+// storage передаётся явно в тестах; в браузере localStorage может быть недоступен — тогда играем без сохранения.
+export function loadProgress(storage = globalThis.localStorage) {
+  return read(storage) ?? { days: {} };
 }
 
 export function saveProgress(progress, storage = globalThis.localStorage) {
   try {
     storage.setItem(KEY, JSON.stringify(progress));
   } catch {}
+}
+
+// Складывает две записи одного дня: ту, что уже лежит в хранилище (theirs), и ту, что собрала эта вкладка (mine).
+// Разгаданное не пропадает ни с одной стороны; total — число ребусов в головоломке.
+function mergeDay(theirs, mine, total) {
+  if (!theirs || theirs.id !== mine.id) return mine;
+  const solved = [...new Set([...theirs.solved, ...mine.solved])];
+  const hints = { ...theirs.hints };
+  for (const [id, h] of Object.entries(mine.hints ?? {})) hints[id] = { ...hints[id], ...h };
+  const known = [theirs.errors, mine.errors].filter((n) => typeof n === 'number');
+  return {
+    ...mine,
+    solved,
+    answers: { ...theirs.answers, ...mine.answers },
+    hints,
+    errors: known.length ? Math.max(...known) : null,
+    time: Math.max(theirs.time ?? 0, mine.time ?? 0),
+    done: Boolean(theirs.done || mine.done || solved.length >= total),
+    onTime: Boolean(theirs.onTime || mine.onTime),
+  };
+}
+
+// Сохраняет запись одного дня и возвращает весь прогресс, каким он стал.
+// Пишем поверх того, что лежит в хранилище сейчас, а не поверх копии, прочитанной при загрузке страницы:
+// иначе вкладка, открытая с утра, стёрла бы всё, что с тех пор решено в другой.
+export function saveDay(progress, date, entry, total, storage = globalThis.localStorage) {
+  const fresh = read(storage) ?? progress; // без хранилища прогресс живёт в памяти вкладки
+  fresh.days[date] = mergeDay(fresh.days[date], entry, total);
+  saveProgress(fresh, storage);
+  return fresh;
 }
 
 // Запись дня, если она относится к этой же головоломке.

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadProgress, saveProgress, dayEntry, dayStatus, stats } from '../web/js/progress.js';
+import { loadProgress, saveProgress, saveDay, dayEntry, dayStatus, stats } from '../web/js/progress.js';
 import { monthDays } from '../web/js/calendar.js';
 
 const memoryStorage = (init = {}) => {
@@ -25,6 +25,48 @@ test('loadProgress: мусор и недоступное хранилище не
   const broken = { getItem: () => { throw new Error('SecurityError'); }, setItem: () => { throw new Error('QuotaExceeded'); } };
   assert.deepEqual(loadProgress(broken), { days: {} });
   assert.doesNotThrow(() => saveProgress({ days: {} }, broken));
+});
+
+// Запись дня, как её собирает игра: решённые узлы, слова к ним и счётчики.
+const entry = (solved, extra = {}) => ({ id: 'f', solved, answers: Object.fromEntries(solved.map((i) => [i, `слово${i}`])), hints: {}, errors: 0, time: 1000, done: false, onTime: false, ...extra });
+
+test('saveDay: вкладка, открытая раньше, не стирает день, решённый в другой', () => {
+  const storage = memoryStorage();
+  const stale = loadProgress(storage); // эта вкладка прочитала прогресс, пока он был пуст
+  saveDay({ days: {} }, '2026-10-04', entry([0, 1], { done: true }), 2, storage); // другая вкладка решила соседний день
+  const after = saveDay(stale, '2026-10-03', entry([0]), 5, storage);
+  assert.deepEqual(Object.keys(after.days).sort(), ['2026-10-03', '2026-10-04']);
+  assert.deepEqual(loadProgress(storage), after);
+});
+
+test('saveDay: один день в двух вкладках — разгаданное складывается', () => {
+  const storage = memoryStorage();
+  saveDay({ days: {} }, '2026-10-03', entry([0, 1], { errors: 2, time: 9000, hints: { 0: { letter: 'С' } } }), 3, storage);
+  const after = saveDay({ days: {} }, '2026-10-03', entry([2], { errors: 1, time: 4000, hints: { 0: { hint: 'текст' }, 2: { reveal: true } } }), 3, storage);
+  const e = after.days['2026-10-03'];
+  assert.deepEqual([...e.solved].sort(), [0, 1, 2]);
+  assert.deepEqual(e.answers, { 0: 'слово0', 1: 'слово1', 2: 'слово2' });
+  assert.deepEqual(e.hints, { 0: { letter: 'С', hint: 'текст' }, 2: { reveal: true } });
+  assert.equal(e.errors, 2);
+  assert.equal(e.time, 9000);
+  assert.equal(e.done, true, 'все три ребуса разгаданы — день собран, хотя ни одна вкладка не решила его целиком');
+});
+
+test('saveDay: запись другой головоломки на эту дату заменяется, а не складывается', () => {
+  const storage = memoryStorage();
+  saveDay({ days: {} }, '2026-10-03', { ...entry([0, 1]), id: 'старая' }, 3, storage);
+  const after = saveDay({ days: {} }, '2026-10-03', entry([2]), 3, storage);
+  assert.deepEqual(after.days['2026-10-03'].solved, [2]);
+});
+
+test('saveDay: без хранилища прогресс живёт в памяти вкладки', () => {
+  const broken = { getItem: () => { throw new Error('SecurityError'); }, setItem: () => { throw new Error('SecurityError'); } };
+  for (const storage of [broken, null]) {
+    let p = { days: {} };
+    p = saveDay(p, '2026-10-03', entry([0]), 5, storage);
+    p = saveDay(p, '2026-10-04', entry([1]), 5, storage);
+    assert.deepEqual(Object.keys(p.days).sort(), ['2026-10-03', '2026-10-04']);
+  }
 });
 
 test('dayEntry: запись чужой головоломки не применяется', () => {

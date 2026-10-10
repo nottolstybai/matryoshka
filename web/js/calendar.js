@@ -1,5 +1,5 @@
 // Календарь архива: месяц, неделя с понедельника.
-// Дни раньше первой головоломки и будущие закрыты; решённые и начатые подсвечены.
+// Открыты только вышедшие дни, для которых есть головоломка; решённые и начатые подсвечены.
 
 import { localDate } from './daily.js';
 import { dayStatus } from './progress.js';
@@ -16,8 +16,9 @@ export function monthDays(year, month) {
   return days;
 }
 
-// view — { year, month }; first/today/selected — даты YYYY-MM-DD; onNav(±1) листает месяц.
-export function renderCalendar(el, { view, first, today, selected, progress, onNav }) {
+// view — { year, month }; first/last — первый и последний вышедший день, today/selected — даты YYYY-MM-DD;
+// isOpen(date) — есть ли на этот день головоломка; onNav(±1) листает месяц.
+export function renderCalendar(el, { view, first, last, today, selected, isOpen, progress, onNav }) {
   const monthKey = (y, m) => `${y}-${String(m + 1).padStart(2, '0')}`;
   const cur = monthKey(view.year, view.month);
   const title = new Date(view.year, view.month, 1).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
@@ -25,7 +26,7 @@ export function renderCalendar(el, { view, first, today, selected, progress, onN
   const head = document.createElement('div');
   head.className = 'cal-head';
   const prev = navButton('‹', 'Предыдущий месяц', cur <= first.slice(0, 7), () => onNav(-1));
-  const next = navButton('›', 'Следующий месяц', cur >= today.slice(0, 7), () => onNav(1));
+  const next = navButton('›', 'Следующий месяц', cur >= last.slice(0, 7), () => onNav(1));
   const label = document.createElement('span');
   label.textContent = title[0].toUpperCase() + title.slice(1);
   label.setAttribute('aria-live', 'polite');
@@ -40,7 +41,7 @@ export function renderCalendar(el, { view, first, today, selected, progress, onN
       continue;
     }
     const n = String(Number(date.slice(8)));
-    const open = date >= first && date <= today;
+    const open = isOpen(date);
     const day = open ? cell('a', n, 'cal-day') : cell('span', n, 'cal-day locked');
     const status = dayStatus(progress, date);
     if (open) {

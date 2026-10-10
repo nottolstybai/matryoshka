@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parse } from '../web/js/parser.js';
-import { localDate, isDate, dayNumber, pickPuzzle } from '../web/js/daily.js';
+import { localDate, isDate, dayNumber, pickPuzzle, latestDate } from '../web/js/daily.js';
 
 const puzzles = JSON.parse(readFileSync(new URL('../web/data/puzzles.json', import.meta.url), 'utf8'));
 
@@ -40,11 +40,18 @@ test('dayNumber не сбивается на переходе времени', (
   assert.equal(dayNumber('2027-01-01') - dayNumber('2026-12-31'), 1);
 });
 
-test('pickPuzzle: точная дата, иначе по кругу', () => {
+test('pickPuzzle: только головоломка с этой датой, чужую под неё не подставляем', () => {
   const pool = [{ date: '2026-10-03' }, { date: '2026-10-01' }, { date: '2026-10-02' }];
   assert.equal(pickPuzzle(pool, '2026-10-02').date, '2026-10-02');
-  assert.equal(pickPuzzle(pool, '2026-10-04').date, '2026-10-01'); // +3 дня от начала → по кругу
-  assert.equal(pickPuzzle(pool, '2026-10-05').date, '2026-10-02');
-  assert.equal(pickPuzzle(pool, '2026-09-30').date, '2026-10-03'); // раньше пула — тоже по кругу
+  assert.equal(pickPuzzle(pool, '2026-10-04'), null, 'пул кончился — головоломки на этот день нет');
+  assert.equal(pickPuzzle(pool, '2026-09-30'), null);
   assert.equal(pickPuzzle([], '2026-10-01'), null);
+});
+
+test('latestDate: последний вышедший день — не позже сегодняшнего', () => {
+  const pool = [{ date: '2026-10-03' }, { date: '2026-10-01' }, { date: '2026-10-02' }];
+  assert.equal(latestDate(pool, '2026-10-02'), '2026-10-02');
+  assert.equal(latestDate(pool, '2026-10-20'), '2026-10-03', 'пул кончился — показываем последнюю вышедшую');
+  assert.equal(latestDate(pool, '2026-09-30'), null, 'ещё ничего не вышло');
+  assert.equal(latestDate([], '2026-10-01'), null);
 });

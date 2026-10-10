@@ -41,7 +41,8 @@ export function parse(text) {
       flush();
       const node = stack.pop();
       node.clue = text.slice(node.start + 1, i);
-      if (!node.clue.replace(/\{[^]*\}/g, '').trim()) throw new ParseError('Пустой ребус', node.start);
+      // Своего текста нет вовсе: «{}» или «{ {x} }». «{a}, {b}» — не пустой: между скобками есть текст.
+      if (!node.parts.some((p) => typeof p === 'string' && p.trim())) throw new ParseError('Пустой ребус', node.start);
       delete node.start;
     } else {
       buf += ch;

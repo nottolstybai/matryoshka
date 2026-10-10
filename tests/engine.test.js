@@ -41,6 +41,12 @@ test('parse: ошибки баланса и пустые ребусы', () => {
   assert.throws(() => parse('a { {x} } b'), ParseError);
 });
 
+test('parse: ребус, который начинается и кончается вложенным, не пустой', () => {
+  const { nodes } = parse('{{a}, б{b} или {c}} тут');
+  assert.equal(nodes.length, 4);
+  assert.deepEqual(nodes[0].children, [1, 2, 3]);
+});
+
 test('parse: текст без ребусов', () => {
   const { root, nodes } = parse('просто текст');
   assert.equal(nodes.length, 0);
